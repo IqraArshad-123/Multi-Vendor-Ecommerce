@@ -1,0 +1,19 @@
+# Node modules (root)
+node_modules/
+
+# Uploads
+uploads/
+
+# Environment files (root & subfolders)
+.env
+.env.*
+
+# Backend env (agar backend me hai)
+backend/.env
+
+# Frontend env (agar frontend me hai)
+frontend/.env
+
+# Logs
+npm-debug.log*
+yarn-error.log*
