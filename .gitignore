@@ -1,19 +1,20 @@
-# Node modules (root)
-node_modules/
+# Ignore all node_modules in any folder
+**/node_modules/
 
-# Uploads
+# Ignore uploads folder (images, etc.)
 uploads/
 
-# Environment files (root & subfolders)
+# Environment files
 .env
 .env.*
-
-# Backend env (agar backend me hai)
+frontend/.env
 backend/.env
 
-# Frontend env (agar frontend me hai)
-frontend/.env
+# Build folders
+dist/
+build/
 
 # Logs
 npm-debug.log*
+yarn-debug.log*
 yarn-error.log*
