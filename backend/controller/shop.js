@@ -9,6 +9,8 @@ const sendToken = require("../utils/jwtToken");
 const Shop = require("../model/shop");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const sendShopToken = require("../utils/shopToken");
+const { isSeller } = require("../middleware/auth");
 
 router.post("/create-shop", upload.single("file"), async (req, res, next) => {
   try {
@@ -70,69 +72,97 @@ const createActivationToken = (seller) => {
 };
 
 // ========== Activate User Route ==========
-// router.post(
-//   "/activation",
-//   catchAsyncErrors(async (req, res, next) => {
-//     try {
-//       const { activation_token } = req.body;
-
-//       const newSeller = jwt.verify(
-//         activation_token,
-//         process.env.ACTIVATION_SECRET
-//       );
-
-//       if (!newSeller) {
-//         return next(new ErrorHandler("Invalid token", 400));
-//       }
-//       const { name, email, password, avatar, zipCode, address, phoneNumber } = newSeller;
-
-//       let seller = await Shop.findOne({ email });
-
-//       if (seller) {
-//         return next(new ErrorHandler("User already exists", 400));
-//       }
-
-//       seller = await Shop.create({
-//         name,
-//         email,
-//         password,
-//         avatar,
-//         zipCode,
-//         address,
-//         phoneNumber,
-//       });
-
-//       sendToken(seller, 201, res);
-//     } catch (error) {
-//       return next(new ErrorHandler(error.message, 500));
-//     }
-//   })
-// );
-
-router.post("/activation", catchAsyncErrors(async (req, res, next) => {
-    const { activation_token } = req.body;
-
+router.post(
+  "/activation",
+  catchAsyncErrors(async (req, res, next) => {
     try {
-        const newSeller = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
+      const { activation_token } = req.body;
 
-        const { name, email, password, avatar, zipCode, address, phoneNumber } = newSeller;
+      const newSeller = jwt.verify(
+        activation_token,
+        process.env.ACTIVATION_SECRET
+      );
 
-        let seller = await Shop.findOne({ email });
-        if(seller) {
-            return res.status(400).json({ success: false, message: "User already exists" });
-        }
+      if (!newSeller) {
+        return next(new ErrorHandler("Invalid token", 400));
+      }
+      const { name, email, password, avatar, zipCode, address, phoneNumber } = newSeller;
 
-        seller = await Shop.create({ name, email, password, avatar, zipCode, address, phoneNumber });
+      let seller = await Shop.findOne({ email });
 
-        sendToken(seller, 201, res);
+      if (seller) {
+        return next(new ErrorHandler("User already exists", 400));
+      }
 
-    } catch (err) {
-        if(err.name === "TokenExpiredError") {
-            return res.status(400).json({ success: false, message: "Your token has expired!" });
-        }
-        return res.status(400).json({ success: false, message: err.message });
+      seller = await Shop.create({
+        name,
+        email,
+        password,
+        avatar,
+        zipCode,
+        address,
+        phoneNumber,
+      });
+
+      sendShopToken(seller, 201, res);
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
     }
-}));
+  })
+);
 
+// login Shop
+
+router.post(
+  "/login-shop",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return next(new ErrorHandler("Please provide the all fields!", 400));
+      }
+
+      const user = await Shop.findOne({ email }).select("+password");
+      if (!user) {
+        return next(new ErrorHandler("Shop does not exist", 400));
+      }
+
+      const isPasswordValid = await user.comparePassword(password);
+
+      if (!isPasswordValid) {
+        return next(
+          new ErrorHandler("Please provide the correct information", 400)
+        );
+      }
+
+      sendShopToken(user, 201, res);
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// load Shop
+
+router.get(
+  "/getSeller",
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const seller = await Shop.findById(req.seller.id);
+
+      if (!seller) {
+        return next(new ErrorHandler("Seller doesn't exists", 400));
+      }
+
+      res.status(200).json({
+        success: true,
+        seller,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
 
 module.exports = router;
