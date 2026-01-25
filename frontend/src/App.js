@@ -18,17 +18,14 @@ import {
   SellerActivationPage,
   ShopLoginPage,
 } from "./Routes.jsx";
+import { ShopDashboardPage } from './routes/ShopRoutes.js';
 import Store from "./redux/store.js";
 import { loadSeller, loadUser } from "./redux/actions/user.js";
-import { useSelector } from "react-redux";
 import ProtectedRoute from "./ProtectedRoute.js";
 import { ShopHomePage } from "./ShopRoutes.js";
 import SellerProtectedRoute from "./SellerProtectedRoute.js";
 
 const App = () => {
-  const { isAuthenticated } = useSelector((state) => state.user);
-  const { isSeller } = useSelector((state) => state.seller);
-
   useEffect(() => {
     Store.dispatch(loadUser());
     Store.dispatch(loadSeller());
@@ -56,7 +53,7 @@ const App = () => {
         <Route
           path="/checkout"
           element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <ProtectedRoute >
               <CheckoutPage />
             </ProtectedRoute>
           }
@@ -66,7 +63,7 @@ const App = () => {
         <Route
           path="/profile"
           element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <ProtectedRoute >
               <ProfilePage />
             </ProtectedRoute>
           }
@@ -77,8 +74,16 @@ const App = () => {
         <Route
           path="/shop/:id"
           element={
-            <SellerProtectedRoute isSeller={isSeller}>
+            <SellerProtectedRoute >
               <ShopHomePage />
+            </SellerProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <SellerProtectedRoute >
+              <ShopDashboardPage />
             </SellerProtectedRoute>
           }
         />
