@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { categoriesData } from "../../static/data";
+import { createProduct } from "../../redux/actions/product";
 import { AiOutlinePlusCircle } from "react-icons/ai";
+import Swal from "sweetalert2";
 
 const CreateProduct = () => {
   const { seller } = useSelector((state) => state.seller);
+  const { success, error } = useSelector((state) => state.products);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -19,8 +22,46 @@ const CreateProduct = () => {
   const [discountPrice, setDiscountPrice] = useState();
   const [stock, setStock] = useState();
 
+  useEffect(() => {
+    if (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: error,
+        confirmButtonColor: "#d33",
+      });
+    }
+
+    if (success) {
+      Swal.fire({
+        icon: "success",
+        title: "Success 🎉",
+        text: "Product created successfully!",
+        confirmButtonColor: "#3085d6",
+      }).then(() => {
+        navigate("/dashboard");
+        window.location.reload();
+      });
+    }
+  }, [dispatch, error, success]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const newForm = new FormData();
+
+    images.forEach((image) => {
+      newForm.append("images", image);
+    });
+    newForm.append("name", name);
+    newForm.append("description", description);
+    newForm.append("category", category);
+    newForm.append("tags", tags);
+    newForm.append("originalPrice", originalPrice);
+    newForm.append("discountPrice", discountPrice);
+    newForm.append("stock", stock);
+    newForm.append("shopId", seller._id);
+    dispatch(createProduct(newForm));
   };
 
   const handleImageChange = (e) => {
@@ -56,14 +97,17 @@ const CreateProduct = () => {
           <label className="pb-2">
             Description <span className="text-red-500">*</span>
           </label>
-          <input
+          <textarea
+            cols='30'
+            rows='8'
             type="text"
             name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="mt-2 w-full px-2 py-1 border text-black border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
             placeholder="Enter your product description..."
-          />
+          >
+            </textarea>
         </div>
         <br />
         <div>
@@ -143,6 +187,7 @@ const CreateProduct = () => {
           </label>
           <input
             type="file"
+            name=""
             id="upload"
             className="hidden"
             multiple
