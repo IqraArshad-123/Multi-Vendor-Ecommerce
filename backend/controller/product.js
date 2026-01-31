@@ -73,7 +73,7 @@ router.delete(
 
       res.status(201).json({
         success: true,
-        product,
+        message: "Product Deleted Successfully",
       });
     } catch (error) {
       return next(new ErrorHandler(error, 400));

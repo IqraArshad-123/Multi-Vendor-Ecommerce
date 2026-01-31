@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllProductsShop } from "../../redux/actions/product";
+import { deleteProduct, getAllProductsShop } from "../../redux/actions/product";
 import { Button } from "@mui/material";
 import { AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
 import { Link } from "react-router-dom";
@@ -16,6 +16,10 @@ const AllProducts = () => {
   useEffect(() => {
     dispatch(getAllProductsShop(seller._id));
   }, [dispatch]);
+
+  const handleDelete = (id) => {
+    dispatch(deleteProduct(id));
+  }
 
   const columns = [
     {
@@ -81,7 +85,9 @@ const AllProducts = () => {
       renderCell: (params) => {
         return (
           <>
-            <Button>
+            <Button
+             onClick={() => handleDelete(params.id)}
+            >
               <AiOutlineDelete size={20} />
             </Button>
           </>
@@ -98,7 +104,7 @@ const AllProducts = () => {
         id: item._id,
         name: item.name,
         price: "US$ " + item.discountPrice,
-        stock: item.stock,
+        Stock: item.stock,
         sold: 10,
       });
     });

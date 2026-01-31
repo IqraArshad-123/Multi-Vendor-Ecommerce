@@ -8,16 +8,12 @@ export const productCreateRequest = createAction("productCreateRequest");
 export const productCreateSuccess = createAction("productCreateSuccess");
 export const productCreateFail = createAction("productCreateFail");
 export const clearErrors = createAction("clearErrors");
-
-export const getAllProductsShopRequest = createAction(
-  "getAllProductsShopRequest",
-);
-export const getAllProductsShopSuccess = createAction(
-  "getAllProductsShopSuccess",
-);
-export const getAllProductsShopFailed = createAction(
-  "getAllProductsShopFailed",
-);
+export const getAllProductsShopRequest = createAction("getAllProductsShopRequest");
+export const getAllProductsShopSuccess = createAction("getAllProductsShopSuccess");
+export const getAllProductsShopFailed = createAction("getAllProductsShopFailed");
+export const deleteProductSuccess = createAction("deleteProductSuccess");
+export const deleteProductFailed = createAction("deleteProductFailed");
+export const deleteProductRequest = createAction("deleteProductRequest");
 
 export const productReducer = createReducer(initialState, (builder) => {
   builder
@@ -34,6 +30,7 @@ export const productReducer = createReducer(initialState, (builder) => {
       state.error = action.payload;
       state.success = false;
     })
+
     //get all products of shop
 
     .addCase(getAllProductsShopRequest, (state) => {
@@ -50,5 +47,20 @@ export const productReducer = createReducer(initialState, (builder) => {
     })
     .addCase(clearErrors, (state) => {
       state.error = null;
+    })
+
+    //delete product of a shop
+
+    .addCase(deleteProductRequest, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(deleteProductSuccess, (state, action) => {
+      state.isLoading = false;
+      state.message = action.payload;
+    })
+
+    .addCase(deleteProductFailed, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
     });
 });
