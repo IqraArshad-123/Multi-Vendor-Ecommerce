@@ -18,7 +18,13 @@ import {
   SellerActivationPage,
   ShopLoginPage,
 } from "./Routes.jsx";
-import { ShopDashboardPage, ShopCreateProduct, ShopAllProducts } from './routes/ShopRoutes.js';
+import {
+  ShopDashboardPage,
+  ShopCreateProduct,
+  ShopAllProducts,
+  ShopCreateEvents,
+  ShopAllEvents
+} from "./routes/ShopRoutes.js";
 import Store from "./redux/store.js";
 import { loadSeller, loadUser } from "./redux/actions/user.js";
 import ProtectedRoute from "./ProtectedRoute.js";
@@ -53,7 +59,7 @@ const App = () => {
         <Route
           path="/checkout"
           element={
-            <ProtectedRoute >
+            <ProtectedRoute>
               <CheckoutPage />
             </ProtectedRoute>
           }
@@ -63,7 +69,7 @@ const App = () => {
         <Route
           path="/profile"
           element={
-            <ProtectedRoute >
+            <ProtectedRoute>
               <ProfilePage />
             </ProtectedRoute>
           }
@@ -75,7 +81,7 @@ const App = () => {
         <Route
           path="/shop/:id"
           element={
-            <SellerProtectedRoute >
+            <SellerProtectedRoute>
               <ShopHomePage />
             </SellerProtectedRoute>
           }
@@ -83,7 +89,7 @@ const App = () => {
         <Route
           path="/dashboard"
           element={
-            <SellerProtectedRoute >
+            <SellerProtectedRoute>
               <ShopDashboardPage />
             </SellerProtectedRoute>
           }
@@ -91,7 +97,7 @@ const App = () => {
         <Route
           path="/dashboard-create-product"
           element={
-            <SellerProtectedRoute >
+            <SellerProtectedRoute>
               <ShopCreateProduct />
             </SellerProtectedRoute>
           }
@@ -99,8 +105,24 @@ const App = () => {
         <Route
           path="/dashboard-products"
           element={
-            <SellerProtectedRoute >
+            <SellerProtectedRoute>
               <ShopAllProducts />
+            </SellerProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard-create-events"
+          element={
+            <SellerProtectedRoute>
+              <ShopCreateEvents />
+            </SellerProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard-events"
+          element={
+            <SellerProtectedRoute>
+              <ShopAllEvents />
             </SellerProtectedRoute>
           }
         />

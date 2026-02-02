@@ -65,8 +65,9 @@ router.delete(
     try {
       const productId = req.params.id;
 
-      const product = await Product.findByIdAndDelete(productId);
+      const product = await Product.findById(productId);
 
+      console.log(product.images)
       if (!product) {
         return next(new ErrorHandler("Product not found with this id!", 500));
       }
