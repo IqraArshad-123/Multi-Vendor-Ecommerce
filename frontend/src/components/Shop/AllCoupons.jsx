@@ -6,8 +6,12 @@ import { AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import Loader from "../Layout/Loader";
 import { DataGrid } from "@mui/x-data-grid";
+import styles from "../../styles/styles";
+import { useState } from "react";
+import { RxCross1 } from "react-icons/rx";
 
-const AllProducts = () => {
+const AllCoupons = () => {
+  const [open, setOpen] = useState(false);
   const { products, isLoading } = useSelector((state) => state.products);
   const { seller } = useSelector((state) => state.seller);
 
@@ -113,6 +117,14 @@ const AllProducts = () => {
         <Loader />
       ) : (
         <div className="w-full mx-8 pt-1 mt-10 bg-white">
+          <div className="w-full flex justify-end">
+            <div
+              className={`${styles.button} !w-max !h-[45px] px-3 !rounded-[5px] mr-3 mb-3`}
+              onClick={() => setOpen(true)}
+            >
+              <span className="text-white">Create Coupon Code</span>
+            </div>
+          </div>
           <DataGrid
             rows={row}
             columns={columns}
@@ -120,10 +132,23 @@ const AllProducts = () => {
             disableSelectionOnClick
             autoHeight
           />
+          {open && (
+            <div className="fixed top-0 left-0 w-full h-screen flex items-center justify-center bg-[#00000062] z-[20000]">
+              <div className="w-[90%] 800px:w-[40%] h-[80vh] bg-white rounded-md shadow p-4">
+                <div className="w-full flex justify-end">
+                  <RxCross1
+                    size={30}
+                    className="cursor-pointer"
+                    onClick={() => setOpen(false)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>
   );
 };
 
-export default AllProducts;
+export default AllCoupons;

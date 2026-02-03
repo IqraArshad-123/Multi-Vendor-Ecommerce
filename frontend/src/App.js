@@ -23,7 +23,8 @@ import {
   ShopCreateProduct,
   ShopAllProducts,
   ShopCreateEvents,
-  ShopAllEvents
+  ShopAllEvents,
+  ShopAllCoupouns
 } from "./routes/ShopRoutes.js";
 import Store from "./redux/store.js";
 import { loadSeller, loadUser } from "./redux/actions/user.js";
@@ -123,6 +124,14 @@ const App = () => {
           element={
             <SellerProtectedRoute>
               <ShopAllEvents />
+            </SellerProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard-coupouns"
+          element={
+            <SellerProtectedRoute>
+              <ShopAllCoupouns />
             </SellerProtectedRoute>
           }
         />

@@ -5,7 +5,8 @@ const { upload } = require("../multer");
 const Shop = require("../model/shop");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
-const {isSeller} = require("../middleware/auth")
+const { isSeller } = require("../middleware/auth");
+const fs = require("fs");
 
 // create product
 
@@ -65,9 +66,22 @@ router.delete(
     try {
       const productId = req.params.id;
 
-      const product = await Product.findById(productId);
+      const productData = await Product.findById(productId);
 
-      console.log(product.images)
+      productData.images.forEach((imageUrl) => {
+        const filename = imageUrl;
+        const filePath = `uploads/${filename}`;
+
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.log(err);
+          }
+        });
+      });
+
+      const product = await Product.findByIdAndDelete(productId);
+
+      console.log(product.images);
       if (!product) {
         return next(new ErrorHandler("Product not found with this id!", 500));
       }

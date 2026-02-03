@@ -5,7 +5,8 @@ const { upload } = require("../multer");
 const Shop = require("../model/shop");
 const ErrorHandler = require("../utils/ErrorHandler");
 const Event = require("../model/event");
-const {isSeller} = require("../middleware/auth")
+const { isSeller } = require("../middleware/auth");
+const fs = require("fs");
 
 // create event
 
@@ -38,7 +39,7 @@ router.post(
   }),
 );
 
-// get all products of a shop
+// get all events of a shop
 
 router.get(
   "/get-all-events/:id",
@@ -56,7 +57,7 @@ router.get(
   }),
 );
 
-// delete product of a shop
+// delete events of a shop
 
 router.delete(
   "/delete-shop-event/:id",
@@ -64,6 +65,19 @@ router.delete(
   catchAsyncErrors(async (req, res, next) => {
     try {
       const productId = req.params.id;
+
+      const eventData = await Event.findById(productId);
+
+      eventData.images.forEach((imageUrl) => {
+        const filename = imageUrl;
+        const filePath = `uploads/${filename}`;
+
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.log(err);
+          }
+        });
+      });
 
       const event = await Event.findByIdAndDelete(productId);
 
