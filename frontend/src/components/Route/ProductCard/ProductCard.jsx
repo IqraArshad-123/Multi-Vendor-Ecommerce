@@ -15,25 +15,37 @@ const ProductCard = ({ data }) => {
   const [click, setClick] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const d = data.name;
+  const d = data?.name;
   const product_name = d.replace(/\s+/g, "-");
+
+  console.log(data);
   return (
     <>
       <div className="w-full h-[370px] bg-white rounded-lg shadow-sm p-3 relative cursor-pointer">
         <div className="flex justify-end"></div>
-        <Link to={`/product/${product_name}`}>
+        {/* <Link to={`/product/${product_name}`}>
           <img
-            src={data.image_Url[0].url}
+            src={data?.image_Url?.[0]?.url}
             alt=""
             className="w-full h-[170px] object-contain"
           />
-        </Link>
+        </Link> */}
+        <Link to={`/product/${product_name}`}>
+  <img
+    src={
+      data?.image_Url?.[0]?.url || 
+      (data?.images?.[0] && `http://localhost:8000/${data.images[0]}`)
+    }
+    alt={data?.name || "product"}
+    className="w-full h-[170px] object-contain"
+  />
+</Link>
         <Link to="/">
-          <h5 className={`${styles.shop_name}`}>{data.shop.name}</h5>
+          <h5 className={`${styles.shop_name}`}>{data?.shop?.name}</h5>
         </Link>
         <Link to={`/product/${product_name}`}>
           <h4 className="pb-3 font-[500]">
-            {data.name.length > 40 ? data.name.slice(0, 40) + "..." : data.name}
+            {data?.name?.length > 40 ? data.name.slice(0, 40) + "..." : data?.name}
           </h4>
           <div className="flex">
             <AiFillStar
@@ -63,7 +75,7 @@ const ProductCard = ({ data }) => {
             />
           </div>
 
-          <div className="py-2 flex items-center justify-between">
+          {/* <div className="py-2 flex items-center justify-between">
             <div className="flex">
               <h5 className={`${styles.productDiscountPrice}`}>
                 {data.price === 0 ? data.price : data.discount_price}$
@@ -75,7 +87,25 @@ const ProductCard = ({ data }) => {
             <span className="ml-2 whitespace-nowrap font-[400] text-[17px] text-[#68d284]">
               {data.total_sell} sold
             </span>
-          </div>
+          </div> */}
+
+          <div className="py-2 flex items-center justify-between">
+  <div className="flex">
+    <h5 className={`${styles.productDiscountPrice}`}>
+      {(data?.discount_price ?? data?.discountPrice)}$
+    </h5>
+
+    <h4 className={`${styles.price}`}>
+      {(data?.price ?? data?.originalPrice)
+        ? (data?.price ?? data?.originalPrice) + "$"
+        : null}
+    </h4>
+  </div>
+
+  <span className="ml-2 whitespace-nowrap font-[400] text-[17px] text-[#68d284]">
+    {(data?.total_sell ?? data?.sold_out)} sold
+  </span>
+</div>
         </Link>
 
         {/* side options */}
@@ -121,3 +151,5 @@ const ProductCard = ({ data }) => {
 };
 
 export default ProductCard;
+
+

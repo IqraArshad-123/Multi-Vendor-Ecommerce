@@ -24,7 +24,8 @@ import {
   ShopAllProducts,
   ShopCreateEvents,
   ShopAllEvents,
-  ShopAllCoupouns
+  ShopAllCoupouns,
+  ShopPreviewPage
 } from "./routes/ShopRoutes.js";
 import Store from "./redux/store.js";
 import { loadSeller, loadUser } from "./redux/actions/user.js";
@@ -76,7 +77,7 @@ const App = () => {
           }
         />
         {/* Shop Routes */}
-
+        <Route path="/shop/preview/:id" element={<ShopPreviewPage />} />
         <Route path="/shop-create" element={<ShopCreate />} />
         <Route path="/shop-login" element={<ShopLoginPage />} />
         <Route
