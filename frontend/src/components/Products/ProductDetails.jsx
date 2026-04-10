@@ -7,6 +7,7 @@ import {
   AiOutlineMessage,
   AiOutlineShoppingCart,
 } from "react-icons/ai";
+import { backend_url } from "../../server";
 
 const ProductDetails = ({ data }) => {
   const [count, setCount] = useState(1);
@@ -37,35 +38,31 @@ const ProductDetails = ({ data }) => {
               {/* LEFT: Product Images */}
               <div className="w-full 800px:w-[50%]">
                 <img
-                  src={data.image_Url[select].url}
+                  src={`${backend_url}${data && data.images[select]}`}
                   alt=""
                   className="w-[80%]"
                 />
                 <div className="w-full flex">
-                  <div
-                    className={`${
-                      select === 0 ? "border" : "null"
-                    } cursor-pointer`}
-                  >
-                    <img
-                      src={data?.image_Url[0].url}
-                      alt=""
-                      className="h-[200px]"
-                      onClick={() => setSelect(0)}
-                    />
-                  </div>
+                  {data &&
+                    data.images.map((i, index) => (
+                      <div
+                        className={`${
+                          select === 0 ? "border" : "null"
+                        } cursor-pointer`}
+                      >
+                        <img
+                          src={`${backend_url}${i}`}
+                          alt=""
+                          className="h-[200px] overflow-hidden mr-3 mt-2"
+                          onClick={() => setSelect(index)}
+                        />
+                      </div>
+                    ))}
                   <div
                     className={`${
                       select === 1 ? "border" : "null"
                     } cursor-pointer`}
-                  >
-                    <img
-                      src={data?.image_Url[1].url}
-                      alt=""
-                      className="h-[200px]"
-                      onClick={() => setSelect(1)}
-                    />
-                  </div>
+                  ></div>
                 </div>
               </div>
               {/* Product description */}
@@ -74,10 +71,10 @@ const ProductDetails = ({ data }) => {
                 <p>{data.description}</p>
                 <div className="flex pt-3">
                   <h4 className={`${styles.productDiscountPrice}`}>
-                    {data.discount_price}$
+                    {data.discountPrice}$
                   </h4>
                   <h3 className={`${styles.price}`}>
-                    {data.price ? data.price + "$" : null}
+                    {data.originalPrice ? data.originalPrice + "$" : null}
                   </h3>
                 </div>
                 <div className="flex items-center mt-12 justify-between pr-3">
@@ -129,7 +126,7 @@ const ProductDetails = ({ data }) => {
                 </div>
                 <div className="flex items-center pt-8">
                   <img
-                    src={data.shop.shop_avatar.url}
+                    src={`${backend_url}${data?.shop?.avatar}`}
                     alt=""
                     className="w-[50px] h-[50px] rounded-full mr-2"
                   />
@@ -137,9 +134,7 @@ const ProductDetails = ({ data }) => {
                     <h3 className={`${styles.shop_name} pb-1 pt-1`}>
                       {data.shop.name}
                     </h3>
-                    <h5 className="pb-3 text-[15px]">
-                      ({data.shop.ratings}) Ratings
-                    </h5>
+                    <h5 className="pb-3 text-[15px]">(4/5) Ratings</h5>
                   </div>
                   <div className="pl-8">
                     <div
@@ -206,36 +201,7 @@ const ProductDetailsInfo = ({ data }) => {
       {active === 1 ? (
         <>
           <p className="py-2 text-[18px] leading-8 pb-10 whitespace-pre-line">
-            The Product Details module provides comprehensive information about
-            each item available on the e-commerce platform. It includes
-            essential attributes such as product name, category, price,
-            availability, specifications, high-quality images, and detailed
-            descriptions to help customers make informed purchasing decisions.
-            Additional features like customer ratings, reviews, discounts, and
-            related product recommendations enhance user engagement and trust.
-            This module is designed to ensure clarity, transparency, and a
-            seamless shopping experience by presenting accurate and up-to-date
-            product information.
-          </p>
-          <p className="py-2 text-[18px] leading-8 pb-10 whitespace-pre-line">
-            The Product Details section serves as a dedicated space where
-            customers can closely examine a product before making a purchase. It
-            presents clear information such as pricing, key features,
-            descriptions, images, and stock availability in a structured manner.
-            By offering relevant details in one place, this section helps users
-            compare options easily and understand what they are buying. An
-            effective Product Details page improves user confidence and supports
-            a smooth and informed shopping journey.
-          </p>
-          <p className="py-2 text-[18px] leading-8 pb-10 whitespace-pre-line">
-            The Product Details page provides users with a clear overview of an
-            item’s features and purchase information. It includes essential
-            elements such as product descriptions, pricing, images, and
-            availability status, allowing customers to evaluate the product
-            easily. This page acts as a bridge between browsing and purchasing
-            by addressing common customer questions and reducing uncertainty.
-            Well-organized product details enhance the overall user experience
-            and encourage confident buying decisions.
+            {data.description}
           </p>
         </>
       ) : null}
@@ -249,25 +215,33 @@ const ProductDetailsInfo = ({ data }) => {
       {active === 3 && (
         <div className="w-full block 800px:flex p-5">
           <div className="w-full 800px:w-[50%]">
-            <div className="flex items-center">
+            {/* <Link to={`/shop/preview/${data?.shop?._id}`}>
+             <div className="flex items-center">
               <img
-                src={data.shop.shop_avatar.url}
+                src={`${backend_url}${data?.shop?.avatar}`}
                 alt=""
                 className="w-[50px] h-[50px] rounded-full"
               />
               <div className="pl-3">
                 <h3 className={styles.shop_name}>{data.shop.name}</h3>
-                <h5 className="pb-2 text-[15px]">
-                  ({data.shop.ratings}) Ratings
-                </h5>
+                <h5 className="pb-2 text-[15px]">(4/5) Ratings</h5>
               </div>
             </div>
-            <p className="pt-2">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Et,
-              natus totam? Tempora alias illum adipisci itaque necessitatibus
-              tenetur sint laboriosam non facere enim, optio ex dicta error
-              aliquid distinctio. Impedit.
-            </p>
+            </Link> */}
+            <Link to={data?.shop?._id ? `/shop/preview/${data.shop._id}` : '#'}>
+  <div className="flex items-center">
+    <img
+      src={data?.shop?.avatar ? `${backend_url}${data.shop.avatar}` : '/default-avatar.png'}
+      alt="Shop Avatar"
+      className="w-[50px] h-[50px] rounded-full"
+    />
+    <div className="pl-3">
+      <h3 className={styles.shop_name}>{data?.shop?.name || 'Shop Name'}</h3>
+      <h5 className="pb-2 text-[15px]">(4/5) Ratings</h5>
+    </div>
+  </div>
+</Link>
+            <p className="pt-2">{data.shop.description}</p>
           </div>
           <div className="w-full 800px:w-[50%] mt-5 800px:mt-0 800px:flex flex-col items-end">
             <div className="text-left">

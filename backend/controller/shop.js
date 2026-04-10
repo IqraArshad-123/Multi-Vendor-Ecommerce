@@ -46,19 +46,19 @@ router.post("/create-shop", upload.single("file"), async (req, res, next) => {
 
     const activationUrl = `http://localhost:3000/seller/activation/${activationToken}`;
 
-     try {
-          await sendMail({
-            email: seller.email,
-            subject: "Activate Your Shop",
-            message: `Hello ${seller.name},\n\nPlease click the link below to activate your shop:\n${activationUrl}`,
-          });
-          return res.status(201).json({
-            success: true,
-            message: `Please check your email (${seller.email}) to activate your shop!`,
-          });
-        } catch (error) {
-          return next(new ErrorHandler(error.message, 500));
-        }
+    try {
+      await sendMail({
+        email: seller.email,
+        subject: "Activate Your Shop",
+        message: `Hello ${seller.name},\n\nPlease click the link below to activate your shop:\n${activationUrl}`,
+      });
+      return res.status(201).json({
+        success: true,
+        message: `Please check your email (${seller.email}) to activate your shop!`,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
   } catch (error) {
     return next(new ErrorHandler(error.message, 400));
   }
@@ -80,13 +80,14 @@ router.post(
 
       const newSeller = jwt.verify(
         activation_token,
-        process.env.ACTIVATION_SECRET
+        process.env.ACTIVATION_SECRET,
       );
 
       if (!newSeller) {
         return next(new ErrorHandler("Invalid token", 400));
       }
-      const { name, email, password, avatar, zipCode, address, phoneNumber } = newSeller;
+      const { name, email, password, avatar, zipCode, address, phoneNumber } =
+        newSeller;
 
       let seller = await Shop.findOne({ email });
 
@@ -108,7 +109,7 @@ router.post(
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
-  })
+  }),
 );
 
 // login Shop
@@ -131,7 +132,7 @@ router.post(
 
       if (!isPasswordValid) {
         return next(
-          new ErrorHandler("Please provide the correct information", 400)
+          new ErrorHandler("Please provide the correct information", 400),
         );
       }
 
@@ -139,7 +140,7 @@ router.post(
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
-  })
+  }),
 );
 
 // load Shop
@@ -162,24 +163,44 @@ router.get(
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
-  })
+  }),
 );
 
 // log out from shop
 
-router.get("/logout", catchAsyncErrors(async(req,res,next) => {
-  try {
-    res.cookie("seller_token", null, {
-      expires: new Date(Date.now()),
-      httpOnly: true,
-    })
+router.get(
+  "/logout",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      res.cookie("seller_token", null, {
+        expires: new Date(Date.now()),
+        httpOnly: true,
+      });
 
-    res.status(201).json({
-      success: true,
-      message: "Log out successful!"
-    })
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
-  }
-}))
+      res.status(201).json({
+        success: true,
+        message: "Log out successful!",
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }),
+);
+
+// get shop info
+router.get(
+  "/get-shop-info/:id",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const shop = await Shop.findById(req.params.id);
+      res.status(201).json({
+        success: true,
+        shop,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }),
+);
+
 module.exports = router;

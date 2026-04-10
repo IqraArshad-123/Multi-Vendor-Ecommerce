@@ -7,6 +7,7 @@ import {
   AiOutlineMessage,
   AiOutlineShoppingCart,
 } from "react-icons/ai";
+import { backend_url } from "../../../server";
 
 const ProductDetailsCard = ({ setOpen, data }) => {
   const [count, setCount] = useState(1);
@@ -42,7 +43,7 @@ const ProductDetailsCard = ({ setOpen, data }) => {
                 <img src={imgSource} alt={data?.name} className="w-full object-contain h-[300px]" />
                 <div className="flex mt-3">
                   <img
-                    src={data?.shop?.shop_avatar?.url || "https://via.placeholder.com/50"}
+                    src={`${backend_url}${data?.shop?.avatar}`}
                     alt=""
                     className="w-[50px] h-[50px] rounded-full mr-2"
                   />
