@@ -228,19 +228,25 @@ const ProductDetailsInfo = ({ data }) => {
               </div>
             </div>
             </Link> */}
-            <Link to={data?.shop?._id ? `/shop/preview/${data.shop._id}` : '#'}>
-  <div className="flex items-center">
-    <img
-      src={data?.shop?.avatar ? `${backend_url}${data.shop.avatar}` : '/default-avatar.png'}
-      alt="Shop Avatar"
-      className="w-[50px] h-[50px] rounded-full"
-    />
-    <div className="pl-3">
-      <h3 className={styles.shop_name}>{data?.shop?.name || 'Shop Name'}</h3>
-      <h5 className="pb-2 text-[15px]">(4/5) Ratings</h5>
-    </div>
-  </div>
-</Link>
+            <Link to={data?.shop?._id ? `/shop/preview/${data.shop._id}` : "#"}>
+              <div className="flex items-center">
+                <img
+                  src={
+                    data?.shop?.avatar
+                      ? `${backend_url}${data.shop.avatar}`
+                      : "/default-avatar.png"
+                  }
+                  alt="Shop Avatar"
+                  className="w-[50px] h-[50px] rounded-full"
+                />
+                <div className="pl-3">
+                  <h3 className={styles.shop_name}>
+                    {data?.shop?.name || "Shop Name"}
+                  </h3>
+                  <h5 className="pb-2 text-[15px]">(4/5) Ratings</h5>
+                </div>
+              </div>
+            </Link>
             <p className="pt-2">{data.shop.description}</p>
           </div>
           <div className="w-full 800px:w-[50%] mt-5 800px:mt-0 800px:flex flex-col items-end">

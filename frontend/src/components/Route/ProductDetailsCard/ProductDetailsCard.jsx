@@ -8,6 +8,7 @@ import {
   AiOutlineShoppingCart,
 } from "react-icons/ai";
 import { backend_url } from "../../../server";
+import { Link } from "react-router-dom";
 
 const ProductDetailsCard = ({ setOpen, data }) => {
   const [count, setCount] = useState(1);
@@ -25,7 +26,7 @@ const ProductDetailsCard = ({ setOpen, data }) => {
 
   // --- Image Handling Logic (Wohi logic jo ProductCard mein hai) ---
   const imgSource = data?.image_Url?.[0]?.url || 
-                    (data?.images?.[0] && `http://localhost:8000/${data.images[0]}`);
+                    (data?.images?.[0] && `${data.images[0]}`);
 
   return (
     <div className="bg-[#fff]">
@@ -41,7 +42,8 @@ const ProductDetailsCard = ({ setOpen, data }) => {
               {/* Left Side */}
               <div className="w-full 800px:w-[50%]">
                 <img src={imgSource} alt={data?.name} className="w-full object-contain h-[300px]" />
-                <div className="flex mt-3">
+                <Link to={data?.shop?._id ? `/shop/preview/${data.shop._id}` : '#'}>
+                 <div className="flex mt-3">
                   <img
                     src={`${backend_url}${data?.shop?.avatar}`}
                     alt=""
@@ -54,6 +56,7 @@ const ProductDetailsCard = ({ setOpen, data }) => {
                     </h5>
                   </div>
                 </div>
+                </Link>
                 <div
                   className={`${styles.button} bg-[#000] mt-4 h-11`}
                   onClick={handleMessageSubmit}

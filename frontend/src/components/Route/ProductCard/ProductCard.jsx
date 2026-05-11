@@ -18,7 +18,6 @@ const ProductCard = ({ data }) => {
   const d = data?.name;
   const product_name = d.replace(/\s+/g, "-");
 
-  console.log(data);
   return (
     <>
       <div className="w-full h-[370px] bg-white rounded-lg shadow-sm p-3 relative cursor-pointer">

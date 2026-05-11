@@ -14,6 +14,9 @@ export const getAllEventsShopFailed = createAction("getAllEventsShopFailed");
 export const deleteEventsuccess = createAction("deleteEventsuccess");
 export const deleteeventFailed = createAction("deleteeventFailed");
 export const deleteeventRequest = createAction("deleteeventRequest");
+export const getAllEventsRequest = createAction("getAllEventsRequest");
+export const getAllEventsSuccess = createAction("getAllEventsSuccess");
+export const getAllEventsFailed = createAction("getAllEventsFailed");
 
 export const eventReducer = createReducer(initialState, (builder) => {
   builder
@@ -45,9 +48,6 @@ export const eventReducer = createReducer(initialState, (builder) => {
       state.isLoading = false;
       state.error = action.payload;
     })
-    .addCase(clearErrors, (state) => {
-      state.error = null;
-    })
 
     //delete event of a shop
 
@@ -62,5 +62,22 @@ export const eventReducer = createReducer(initialState, (builder) => {
     .addCase(deleteeventFailed, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
-    });
+    })
+
+    //get all Events 
+    .addCase(getAllEventsRequest, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(getAllEventsSuccess, (state, action) => {
+      state.isLoading = false;
+      state.allEvents = action.payload;
+    })
+
+    .addCase(getAllEventsFailed, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    .addCase(clearErrors, (state) => {
+      state.error = null;
+    })
 });
