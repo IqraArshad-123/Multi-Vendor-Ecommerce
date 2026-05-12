@@ -12,17 +12,33 @@ const ProductsPage = () => {
   const categoryData = searchParams.get("category");
   const { allProducts } = useSelector((state) => state.products);
 
+  // useEffect(() => {
+  //   if (categoryData === null) {
+  //     const d =
+  //       allProducts && allProducts.sort((a, b) => a.sold_out - b.sold_out);
+  //     setData(d);
+  //   } else {
+  //     const d =
+  //       allProducts && allProducts.filter((i) => i.category === categoryData);
+  //     setData(d);
+  //   }
+  // }, [allProducts]);
+
   useEffect(() => {
-    if (categoryData === null) {
-      const d =
-        allProducts && allProducts.sort((a, b) => a.sold_out - b.sold_out);
-      setData(d);
-    } else {
-      const d =
-        allProducts && allProducts.filter((i) => i.category === categoryData);
-      setData(d);
-    }
-  }, [allProducts]);
+  if (categoryData === null) {
+    const d =
+      allProducts &&
+      [...allProducts].sort((a, b) => a.sold_out - b.sold_out);
+
+    setData(d);
+  } else {
+    const d =
+      allProducts &&
+      allProducts.filter((i) => i.category === categoryData);
+
+    setData(d);
+  }
+}, [allProducts, categoryData]);
 
   return (
     <div>
