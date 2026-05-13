@@ -12,6 +12,7 @@ import {
 import ProductDetailsCard from '../ProductDetailsCard/ProductDetailsCard.jsx'
 
 const ProductCard = ({ data }) => {
+
   const [click, setClick] = useState(false);
   const [open, setOpen] = useState(false);
 

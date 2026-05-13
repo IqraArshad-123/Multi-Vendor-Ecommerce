@@ -8,9 +8,14 @@ import {
   AiOutlineShoppingCart,
 } from "react-icons/ai";
 import { backend_url } from "../../../server";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
+import { addToCart } from "../../../redux/actions/cart";
 
 const ProductDetailsCard = ({ setOpen, data }) => {
+  const { cart } = useSelector((state) => state.cart);
+  const dispatch = useDispatch();
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
 
@@ -24,9 +29,44 @@ const ProductDetailsCard = ({ setOpen, data }) => {
     setCount(count + 1);
   };
 
-  // --- Image Handling Logic (Wohi logic jo ProductCard mein hai) ---
-  const imgSource = data?.image_Url?.[0]?.url || 
-                    (data?.images?.[0] && `${data.images[0]}`);
+    const imgSource =
+    data?.image_Url?.[0]?.url || (data?.images?.[0] && `${data.images[0]}`);
+
+  const addToCartHandler = (id) => {
+    const isItemExists = cart && cart.find((i) => i._id === id);
+
+    if (isItemExists) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Item already in cart!",
+      });
+    } else {
+      if (data.stock < count) {
+        Swal.fire({
+          icon: "warning",
+          title: "Stock Limited",
+          text: "Product stock limited!",
+        });
+      } else {
+        const cartData = { ...data, qty: count };
+
+        dispatch(addToCart(cartData));
+
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: "Item added to cart successfully!",
+          timer: 3000,
+          showConfirmButton: true,
+        });
+      }
+    }
+  };
+
+
+
+  
 
   return (
     <div className="bg-[#fff]">
@@ -41,21 +81,27 @@ const ProductDetailsCard = ({ setOpen, data }) => {
             <div className="w-full block 800px:flex">
               {/* Left Side */}
               <div className="w-full 800px:w-[50%]">
-                <img src={imgSource} alt={data?.name} className="w-full object-contain h-[300px]" />
-                <Link to={data?.shop?._id ? `/shop/preview/${data.shop._id}` : '#'}>
-                 <div className="flex mt-3">
-                  <img
-                    src={`${backend_url}${data?.shop?.avatar}`}
-                    alt=""
-                    className="w-[50px] h-[50px] rounded-full mr-2"
-                  />
-                  <div>
-                    <h3 className={styles.shop_name}>{data?.shop?.name}</h3>
-                    <h5 className="pb-3 text-[15px]">
-                      ({data?.shop?.ratings || 0}) Ratings
-                    </h5>
+                <img
+                  src={imgSource}
+                  alt={data?.name}
+                  className="w-full object-contain h-[300px]"
+                />
+                <Link
+                  to={data?.shop?._id ? `/shop/preview/${data.shop._id}` : "#"}
+                >
+                  <div className="flex mt-3">
+                    <img
+                      src={`${backend_url}${data?.shop?.avatar}`}
+                      alt=""
+                      className="w-[50px] h-[50px] rounded-full mr-2"
+                    />
+                    <div>
+                      <h3 className={styles.shop_name}>{data?.shop?.name}</h3>
+                      <h5 className="pb-3 text-[15px]">
+                        ({data?.shop?.ratings || 0}) Ratings
+                      </h5>
+                    </div>
                   </div>
-                </div>
                 </Link>
                 <div
                   className={`${styles.button} bg-[#000] mt-4 h-11`}
@@ -81,10 +127,12 @@ const ProductDetailsCard = ({ setOpen, data }) => {
                     {data?.discount_price || data?.discountPrice}$
                   </h5>
                   <h4 className={`${styles.price}`}>
-                    {data?.price || data?.originalPrice ? (data?.price || data?.originalPrice) + "$" : null}
+                    {data?.price || data?.originalPrice
+                      ? (data?.price || data?.originalPrice) + "$"
+                      : null}
                   </h4>
                 </div>
-                
+
                 <div className="flex items-center mt-12 justify-between pr-3">
                   <div>
                     <button
@@ -121,7 +169,10 @@ const ProductDetailsCard = ({ setOpen, data }) => {
                     )}
                   </div>
                 </div>
-                <div className={`${styles.button} mt-6 flex items-center h-11`}>
+                <div
+                  className={`${styles.button} mt-6 flex items-center h-11`}
+                  onClick={() => addToCartHandler(data._id)}
+                >
                   <span className="text-[#fff] flex items-center">
                     Add to Cart <AiOutlineShoppingCart className="ml-1" />
                   </span>
