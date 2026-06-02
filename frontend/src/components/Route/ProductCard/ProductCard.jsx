@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "../../../styles/styles";
 import {
@@ -9,43 +9,94 @@ import {
   AiOutlineShoppingCart,
   AiOutlineStar,
 } from "react-icons/ai";
-import ProductDetailsCard from '../ProductDetailsCard/ProductDetailsCard.jsx'
+import ProductDetailsCard from "../ProductDetailsCard/ProductDetailsCard.jsx";
+import { backend_url } from "../../../server.js";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addToWishlist,
+  removeFromWishlist,
+} from "../../../redux/actions/wishlist.js";
+import Swal from "sweetalert2";
+import { addToCart } from "../../../redux/actions/cart.js";
 
 const ProductCard = ({ data }) => {
-
   const [click, setClick] = useState(false);
   const [open, setOpen] = useState(false);
+  const dispatch = useDispatch();
+  const { wishlist } = useSelector((state) => state.wishlist);
+  const { cart } = useSelector((state) => state.cart);
 
-  const d = data?.name;
-  const product_name = d.replace(/\s+/g, "-");
+
+
+  useEffect(() => {
+    if (wishlist && wishlist.find((i) => i._id === data._id)) {
+      setClick(true);
+    } else {
+      setClick(false);
+    }
+  }, [wishlist]);
+
+  const removeFromWishlistHandler = (data) => {
+    setClick(!click);
+    dispatch(removeFromWishlist(data));
+  };
+  const addToWishlistHandler = (data) => {
+    setClick(!click);
+    dispatch(addToWishlist(data));
+  };
+
+  const addToCartHandler = (id) => {
+    const isItemExists = cart && cart.find((i) => i._id === id);
+
+    if (isItemExists) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Item already in cart!",
+      });
+    } else {
+      if (data.stock < 1) {
+        Swal.fire({
+          icon: "warning",
+          title: "Stock Limited",
+          text: "Product stock limited!",
+        });
+      } else {
+        const cartData = { ...data, qty: 1 };
+
+        dispatch(addToCart(cartData));
+
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: "Item added to cart successfully!",
+          timer: 3000,
+          showConfirmButton: true,
+        });
+      }
+    }
+  };
 
   return (
     <>
       <div className="w-full h-[370px] bg-white rounded-lg shadow-sm p-3 relative cursor-pointer">
         <div className="flex justify-end"></div>
-        {/* <Link to={`/product/${product_name}`}>
+
+        <Link to={`/product/${data._id}`}>
           <img
-            src={data?.image_Url?.[0]?.url}
-            alt=""
+            src={`${backend_url}${data?.images[0]}`}
+            alt={data?.name || "product"}
             className="w-full h-[170px] object-contain"
           />
-        </Link> */}
-        <Link to={`/product/${product_name}`}>
-  <img
-    src={
-      data?.image_Url?.[0]?.url || 
-      (data?.images?.[0] && `http://localhost:8000/${data.images[0]}`)
-    }
-    alt={data?.name || "product"}
-    className="w-full h-[170px] object-contain"
-  />
-</Link>
+        </Link>
         <Link to="/">
           <h5 className={`${styles.shop_name}`}>{data?.shop?.name}</h5>
         </Link>
-        <Link to={`/product/${product_name}`}>
+        <Link to={`/product/${data._id}`}>
           <h4 className="pb-3 font-[500]">
-            {data?.name?.length > 40 ? data.name.slice(0, 40) + "..." : data?.name}
+            {data?.name?.length > 40
+              ? data.name.slice(0, 40) + "..."
+              : data?.name}
           </h4>
           <div className="flex">
             <AiFillStar
@@ -75,37 +126,23 @@ const ProductCard = ({ data }) => {
             />
           </div>
 
-          {/* <div className="py-2 flex items-center justify-between">
+          <div className="py-2 flex items-center justify-between">
             <div className="flex">
               <h5 className={`${styles.productDiscountPrice}`}>
-                {data.price === 0 ? data.price : data.discount_price}$
+                {data?.discount_price ?? data?.discountPrice}$
               </h5>
+
               <h4 className={`${styles.price}`}>
-                {data.price ? data.price + "$" : null}
+                {(data?.price ?? data?.originalPrice)
+                  ? (data?.price ?? data?.originalPrice) + "$"
+                  : null}
               </h4>
             </div>
+
             <span className="ml-2 whitespace-nowrap font-[400] text-[17px] text-[#68d284]">
-              {data.total_sell} sold
+              {data?.total_sell ?? data?.sold_out} sold
             </span>
-          </div> */}
-
-          <div className="py-2 flex items-center justify-between">
-  <div className="flex">
-    <h5 className={`${styles.productDiscountPrice}`}>
-      {(data?.discount_price ?? data?.discountPrice)}$
-    </h5>
-
-    <h4 className={`${styles.price}`}>
-      {(data?.price ?? data?.originalPrice)
-        ? (data?.price ?? data?.originalPrice) + "$"
-        : null}
-    </h4>
-  </div>
-
-  <span className="ml-2 whitespace-nowrap font-[400] text-[17px] text-[#68d284]">
-    {(data?.total_sell ?? data?.sold_out)} sold
-  </span>
-</div>
+          </div>
         </Link>
 
         {/* side options */}
@@ -114,7 +151,7 @@ const ProductCard = ({ data }) => {
             <AiFillHeart
               size={22}
               className="cursor-pointer absolute right-2 top-5"
-              onClick={() => setClick(!click)}
+              onClick={() => removeFromWishlistHandler(data)}
               color={click ? "red" : "#333"}
               title="Remove from Wishlist"
             />
@@ -122,7 +159,7 @@ const ProductCard = ({ data }) => {
             <AiOutlineHeart
               size={22}
               className="cursor-pointer absolute right-2 top-5"
-              onClick={() => setClick(!click)}
+              onClick={() => addToWishlistHandler(data)}
               color={click ? "red" : "#333"}
               title="Add to Wishlist"
             />
@@ -137,13 +174,11 @@ const ProductCard = ({ data }) => {
           <AiOutlineShoppingCart
             size={25}
             className="cursor-pointer absolute right-2 top-24"
-            onClick={() => setOpen(!open)}
+            onClick={() => addToCartHandler(data._id)}
             color="#444"
             title="Add to cart"
           />
-          {open ? (
-            <ProductDetailsCard  setOpen={setOpen} data={data} />
-          ) : null}
+          {open ? <ProductDetailsCard setOpen={setOpen} data={data} /> : null}
         </div>
       </div>
     </>
@@ -151,5 +186,3 @@ const ProductCard = ({ data }) => {
 };
 
 export default ProductCard;
-
-
