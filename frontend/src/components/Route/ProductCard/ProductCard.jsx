@@ -26,8 +26,6 @@ const ProductCard = ({ data }) => {
   const { wishlist } = useSelector((state) => state.wishlist);
   const { cart } = useSelector((state) => state.cart);
 
-
-
   useEffect(() => {
     if (wishlist && wishlist.find((i) => i._id === data._id)) {
       setClick(true);
@@ -89,7 +87,7 @@ const ProductCard = ({ data }) => {
             className="w-full h-[170px] object-contain"
           />
         </Link>
-        <Link to="/">
+        <Link to={`/shop/preview/${data?.shop._id}`}>
           <h5 className={`${styles.shop_name}`}>{data?.shop?.name}</h5>
         </Link>
         <Link to={`/product/${data._id}`}>

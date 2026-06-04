@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../../styles/styles";
 import {
@@ -8,12 +8,33 @@ import {
   AiOutlineShoppingCart,
 } from "react-icons/ai";
 import { backend_url } from "../../server";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addToWishlist,
+  removeFromWishlist,
+} from "../../redux/actions/wishlist";
+import Swal from "sweetalert2";
+import { addToCart } from "../../redux/actions/cart";
+import { getAllProductsShop } from "../../redux/actions/product";
 
 const ProductDetails = ({ data }) => {
+  const { wishlist } = useSelector((state) => state.wishlist);
+  const { cart } = useSelector((state) => state.cart);
+  const { products } = useSelector((state) => state.products);
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
   const [select, setSelect] = useState(0);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getAllProductsShop(data && data?.shop._id));
+    if (wishlist && wishlist.find((i) => i._id === data?._id)) {
+      setClick(true);
+    } else {
+      setClick(false);
+    }
+  }, [data, wishlist]);
 
   const incrementCount = () => {
     setCount(count + 1);
@@ -22,6 +43,47 @@ const ProductDetails = ({ data }) => {
   const decrementCount = () => {
     if (count > 1) {
       setCount(count - 1);
+    }
+  };
+
+  const removeFromWishlistHandler = (data) => {
+    setClick(!click);
+    dispatch(removeFromWishlist(data));
+  };
+  const addToWishlistHandler = (data) => {
+    setClick(!click);
+    dispatch(addToWishlist(data));
+  };
+
+  const addToCartHandler = (id) => {
+    const isItemExists = cart && cart.find((i) => i._id === id);
+
+    if (isItemExists) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Item already in cart!",
+      });
+    } else {
+      if (data.stock < 1) {
+        Swal.fire({
+          icon: "warning",
+          title: "Stock Limited",
+          text: "Product stock limited!",
+        });
+      } else {
+        const cartData = { ...data, qty: count };
+
+        dispatch(addToCart(cartData));
+
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: "Item added to cart successfully!",
+          timer: 3000,
+          showConfirmButton: true,
+        });
+      }
     }
   };
 
@@ -102,7 +164,7 @@ const ProductDetails = ({ data }) => {
                       <AiFillHeart
                         size={30}
                         className="cursor-pointer"
-                        onClick={() => setClick(!click)}
+                        onClick={() => removeFromWishlistHandler(data)}
                         color={click ? "red" : "#333"}
                         title="Remove from Wishlist"
                       />
@@ -110,7 +172,7 @@ const ProductDetails = ({ data }) => {
                       <AiOutlineHeart
                         size={30}
                         className="cursor-pointer"
-                        onClick={() => setClick(!click)}
+                        onClick={() => addToWishlistHandler(data)}
                         color={click ? "red" : "#333"}
                         title="Add to Wishlist"
                       />
@@ -119,21 +181,28 @@ const ProductDetails = ({ data }) => {
                 </div>
                 <div
                   className={`${styles.button} mt-6 !rounded !h-11 flex items-center`}
+                  onClick={() => {
+                    addToCartHandler(data._id);
+                  }}
                 >
                   <span className="text-white flex items-center">
                     Add to Cart <AiOutlineShoppingCart className="ml-1" />
                   </span>
                 </div>
                 <div className="flex items-center pt-8">
-                  <img
-                    src={`${backend_url}${data?.shop?.avatar}`}
-                    alt=""
-                    className="w-[50px] h-[50px] rounded-full mr-2"
-                  />
+                  <Link to={`/shop/preview/${data?.shop._id}`}>
+                    <img
+                      src={`${backend_url}${data?.shop?.avatar}`}
+                      alt=""
+                      className="w-[50px] h-[50px] rounded-full mr-2"
+                    />
+                  </Link>
                   <div>
-                    <h3 className={`${styles.shop_name} pb-1 pt-1`}>
-                      {data.shop.name}
-                    </h3>
+                    <Link to={`/shop/preview/${data?.shop._id}`}>
+                      <h3 className={`${styles.shop_name} pb-1 pt-1`}>
+                        {data.shop.name}
+                      </h3>
+                    </Link>
                     <h5 className="pb-3 text-[15px]">(4/5) Ratings</h5>
                   </div>
                   <div className="pl-8">
@@ -150,7 +219,7 @@ const ProductDetails = ({ data }) => {
               </div>
             </div>
           </div>
-          <ProductDetailsInfo data={data} />
+          <ProductDetailsInfo data={data} products={products} />
           <br />
           <br />
         </div>
@@ -159,7 +228,7 @@ const ProductDetails = ({ data }) => {
   );
 };
 
-const ProductDetailsInfo = ({ data }) => {
+const ProductDetailsInfo = ({ data, products }) => {
   const [active, setActive] = useState(1);
   return (
     <div className="bg-[#f5f6fb] px-3 800px:px-10 py-2 rounded">
@@ -215,19 +284,6 @@ const ProductDetailsInfo = ({ data }) => {
       {active === 3 && (
         <div className="w-full block 800px:flex p-5">
           <div className="w-full 800px:w-[50%]">
-            {/* <Link to={`/shop/preview/${data?.shop?._id}`}>
-             <div className="flex items-center">
-              <img
-                src={`${backend_url}${data?.shop?.avatar}`}
-                alt=""
-                className="w-[50px] h-[50px] rounded-full"
-              />
-              <div className="pl-3">
-                <h3 className={styles.shop_name}>{data.shop.name}</h3>
-                <h5 className="pb-2 text-[15px]">(4/5) Ratings</h5>
-              </div>
-            </div>
-            </Link> */}
             <Link to={data?.shop?._id ? `/shop/preview/${data.shop._id}` : "#"}>
               <div className="flex items-center">
                 <img

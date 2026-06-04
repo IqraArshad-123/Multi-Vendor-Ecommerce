@@ -1,7 +1,6 @@
 import axios from "axios";
 import { server } from "../../server.js";
 
-
 //load user
 export const loadUser = () => async (dispatch) => {
   try {
@@ -43,3 +42,28 @@ export const loadSeller = () => async (dispatch) => {
     });
   }
 };
+
+//user update information
+
+export const updateUserInfomation =
+  (name, email, phoneNumber, password) => async (dispatch) => {
+    try {
+      dispatch({ type: "updateUserInfoRequest" });
+
+      const { data } = await axios.put(
+        `${server}/api/v2/user/update-user-info`,
+        { name, email, phoneNumber, password },
+        { withCredentials: true },
+      );
+
+      dispatch({
+        type: "updateUserInfoSuccess",
+        payload: data.user,
+      });
+    } catch (error) {
+      dispatch({
+        type: "updateUserInfoFailed",
+        payload: error.response.data.message,
+      });
+    }
+  };

@@ -1,24 +1,41 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { backend_url } from "../../server";
-import { AiOutlineArrowRight, AiOutlineCamera, AiOutlineDelete } from "react-icons/ai";
+import {
+  AiOutlineArrowRight,
+  AiOutlineCamera,
+  AiOutlineDelete,
+} from "react-icons/ai";
 import styles from "../../styles/styles";
 import { Link } from "react-router-dom";
 import { Button } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { MdOutlineTrackChanges } from "react-icons/md";
+import Swal from "sweetalert2";
+import { updateUserInfomation } from "../../redux/actions/user";
 
 const ProfileContent = ({ active }) => {
-  const { user } = useSelector((state) => state.user);
+  const { user, error } = useSelector((state) => state.user);
   const [name, setName] = useState(user && user.name);
   const [email, setEmail] = useState(user && user.email);
-  const [phoneNumber, setPhoneNumber] = useState();
-  const [zipCode, setZipCode] = useState();
-  const [address1, setAddress1] = useState();
-  const [address2, setAddress2] = useState();
+  const [phoneNumber, setPhoneNumber] = useState(user && user.phoneNumber);
+  const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+  if (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error,
+    });
+  }
+}, [error]);
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    dispatch(updateUserInfomation(name, email, phoneNumber, password));
   };
 
   return (
@@ -80,40 +97,17 @@ const ProfileContent = ({ active }) => {
                 </div>
 
                 <div className="w-[100%] 800px:w-[50%]">
-                  <label className="block pb-2">Zip Code</label>
+                  <label className="block pb-2">Password</label>
                   <input
-                    type="number"
+                    type="password"
                     className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
                     required
-                    value={zipCode}
-                    onChange={(e) => setZipCode(e.target.value)}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
               </div>
 
-              <div className="w-full pb-3 800px:flex block">
-                <div className="w-[100%] 800px:w-[50%]">
-                  <label className="block pb-2">Address 1</label>
-                  <input
-                    type="address"
-                    className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
-                    required
-                    value={address1}
-                    onChange={(e) => setAddress1(e.target.value)}
-                  />
-                </div>
-
-                <div className="w-[100%] 800px:w-[50%]">
-                  <label className="block pb-2">Address 2</label>
-                  <input
-                    type="address"
-                    className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
-                    required
-                    value={address2}
-                    onChange={(e) => setAddress2(e.target.value)}
-                  />
-                </div>
-              </div>
               <div>
                 <input
                   required
@@ -473,11 +467,11 @@ const PaymentMethod = () => {
           <h5 className="pl-5 font-[600]">Iqra Arshad</h5>
         </div>
         <div className="pl-8 flex items-center">
-            <h6>4532 **** *** ****</h6>
-            <h5 className="pl-6">18/2026</h5>
+          <h6>4532 **** *** ****</h6>
+          <h5 className="pl-6">18/2026</h5>
         </div>
         <div className="min-w-[10%] flex items-center justify-between pl-8">
-            <AiOutlineDelete size={25} className="cursor-pointer" />
+          <AiOutlineDelete size={25} className="cursor-pointer" />
         </div>
       </div>
     </div>
@@ -501,13 +495,13 @@ const Address = () => {
           <h5 className="pl-5 font-[600]">Default</h5>
         </div>
         <div className="pl-8 flex items-center">
-            <h6>494 Erdman Passage, New Zoietown, Paraguay</h6>
+          <h6>494 Erdman Passage, New Zoietown, Paraguay</h6>
         </div>
         <div className="pl-8 flex items-center">
-            <h6>(213) 840-9416</h6>
+          <h6>(213) 840-9416</h6>
         </div>
         <div className="min-w-[10%] flex items-center justify-between pl-8">
-            <AiOutlineDelete size={25} className="cursor-pointer" />
+          <AiOutlineDelete size={25} className="cursor-pointer" />
         </div>
       </div>
     </div>
