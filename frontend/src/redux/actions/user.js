@@ -67,3 +67,37 @@ export const updateUserInfomation =
       });
     }
   };
+
+  // update user address
+export const updatUserAddress =
+  (country, city, address1, address2, zipCode, addressType) =>
+  async (dispatch) => {
+    try {
+      dispatch({
+        type: "updateUserAddressRequest",
+      });
+
+      const { data } = await axios.put(
+        `${server}/api/v2/user/update-user-addresses`,
+        {
+          country,
+          city,
+          address1,
+          address2,
+          zipCode,
+          addressType,
+        },
+        { withCredentials: true }
+      );
+
+      dispatch({
+        type: "updateUserAddressSuccess",
+        payload: data.user
+      });
+    } catch (error) {
+      dispatch({
+        type: "updateUserAddressFailed",
+        payload: error.response.data.message,
+      });
+    }
+  };

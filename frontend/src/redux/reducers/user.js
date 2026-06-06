@@ -19,9 +19,6 @@ export const userReducer = createReducer(initialState, (builder) => {
       state.isAuthenticated = false;
       state.error = action.payload;
     })
-    .addCase("clearErrors", (state) => {
-      state.error = null;
-    })
 
     //update user information
 
@@ -35,5 +32,22 @@ export const userReducer = createReducer(initialState, (builder) => {
     .addCase("updateUserInfoFailed", (state, action) => {
       state.loading = false;
       state.error = action.payload;
+    })
+
+    //update user address
+
+    .addCase("updateUserAddressRequest", (state) => {
+      state.addressLoading = true;
+    })
+    .addCase("updateUserAddressSuccess", (state, action) => {
+      state.addressLoading = false;
+      state.user = action.payload;
+    })
+    .addCase("updateUserAddressFailed", (state, action) => {
+      state.addressLoading = false;
+      state.error = action.payload;
+    })
+    .addCase("clearErrors", (state) => {
+      state.error = null;
     });
 });
