@@ -15,6 +15,7 @@ import { Country, State, City } from "country-state-city";
 import { MdOutlineTrackChanges } from "react-icons/md";
 import Swal from "sweetalert2";
 import {
+  deleteUserAddress,
   updateUserInfomation,
   updatUserAddress,
 } from "../../redux/actions/user";
@@ -186,11 +187,11 @@ const ProfileContent = ({ active }) => {
         </div>
       )}
 
-      {/* Payment Method */}
+      {/* Change Password */}
 
       {active === 6 && (
         <div className="">
-          <PaymentMethod />
+          <ChangePassword />
         </div>
       )}
 
@@ -487,33 +488,100 @@ const TrackOrder = () => {
   );
 };
 
-const PaymentMethod = () => {
+const ChangePassword = () => {
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const passwordChangeHandler = async (e) => {
+    e.preventDefault();
+
+    try {
+      await axios.put(
+        `${server}/api/v2/user/update-user-password`,
+        { oldPassword, newPassword, confirmPassword },
+        { withCredentials: true },
+      );
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Change Successfully",
+        timer: 4000, 
+        showConfirmButton: false,
+      });
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: error.response?.data?.message || "Something went wrong",
+        confirmButtonText: "OK",
+      });
+    }
+  };
   return (
     <div className="w-full px-5">
-      <div className="w-full flex items-center justify-between">
-        <h1 className="text-[25px] font-[600] text-[#000000ba] pb-2">
-          Payment Methods
-        </h1>
-        <div className={`${styles.button} !rounded-md`}>
-          <span className="text-[#fff]">Add New</span>
-        </div>
-      </div>
-      <br />
-      <div className="w-full bg-white h-[70px] rounded-[4px] flex items-center justify-between pr-10 px-3">
-        <div className="flex items-center">
-          <img
-            src="https://bonik-react.vercel.app/assets/images/payment-methods/Visa.svg"
-            alt=""
-          />
-          <h5 className="pl-5 font-[600]">Iqra Arshad</h5>
-        </div>
-        <div className="pl-8 flex items-center">
-          <h6>4532 **** *** ****</h6>
-          <h5 className="pl-6">18/2026</h5>
-        </div>
-        <div className="min-w-[10%] flex items-center justify-between pl-8">
-          <AiOutlineDelete size={25} className="cursor-pointer" />
-        </div>
+      <h1 className="block text-center text-[25px] font-[600] text-[#000000ba] pb-2">
+        Change Password
+      </h1>
+      <div className="w-full">
+        <form
+          onSubmit={passwordChangeHandler}
+          className="flex flex-col items-center space-y-4"
+        >
+          {/* Old Password */}
+          <div className="w-full max-w-md">
+            <label className="block pb-1 text-sm font-medium">
+              Enter your old password
+            </label>
+            <input
+              type="password"
+              className="w-full h-9 px-2 border rounded text-sm focus:outline-none focus:ring focus:ring-indigo-300"
+              required
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+            />
+          </div>
+
+          {/* New Password */}
+          <div className="w-full max-w-md">
+            <label className="block pb-1 text-sm font-medium">
+              Enter your new password
+            </label>
+            <input
+              type="password"
+              className="w-full h-9 px-2 border rounded text-sm focus:outline-none focus:ring focus:ring-indigo-300"
+              required
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </div>
+
+          {/* Confirm Password */}
+          <div className="w-full max-w-md">
+            <label className="block pb-1 text-sm font-medium">
+              Enter your confirm password
+            </label>
+            <input
+              type="password"
+              className="w-full h-9 px-2 border rounded text-sm focus:outline-none focus:ring focus:ring-indigo-300"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
+
+          {/* Submit Button */}
+          <div className="w-full max-w-md">
+            <input
+              type="submit"
+              value="Update"
+              className="w-full h-9 text-sm border border-indigo-600 text-indigo-600 rounded cursor-pointer hover:bg-indigo-600 hover:text-white transition"
+            />
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -568,9 +636,13 @@ const Address = () => {
       setCity("");
       setAddress1("");
       setAddress2("");
-      setZipCode(null);
+      setZipCode("");
       setAddressType("");
     }
+  };
+
+  const handleDelete = (item) => {
+    dispatch(deleteUserAddress(item._id));
   };
 
   return (
@@ -709,20 +781,37 @@ const Address = () => {
         </div>
       </div>
       <br />
-      <div className="w-full bg-white h-[70px] rounded-[4px] flex items-center justify-between pr-10 px-3">
-        <div className="flex items-center">
-          <h5 className="pl-5 font-[600]">Default</h5>
-        </div>
-        <div className="pl-8 flex items-center">
-          <h6>494 Erdman Passage, New Zoietown, Paraguay</h6>
-        </div>
-        <div className="pl-8 flex items-center">
-          <h6>(213) 840-9416</h6>
-        </div>
-        <div className="min-w-[10%] flex items-center justify-between pl-8">
-          <AiOutlineDelete size={25} className="cursor-pointer" />
-        </div>
-      </div>
+      {user &&
+        user.addresses.map((item, index) => (
+          <div
+            className="w-full bg-white h-[70px] rounded-[4px] flex items-center justify-between pr-10 px-3"
+            key={index}
+          >
+            <div className="flex items-center">
+              <h5 className="pl-5 font-[600]">{item.addressType}</h5>
+            </div>
+            <div className="pl-8 flex items-center">
+              <h6>
+                {item.address1} , {item.address2}
+              </h6>
+            </div>
+            <div className="pl-8 flex items-center">
+              <h6>{user && user.phoneNumber}</h6>
+            </div>
+            <div className="min-w-[10%] flex items-center justify-between pl-8">
+              <AiOutlineDelete
+                size={25}
+                className="cursor-pointer"
+                onClick={() => handleDelete(item)}
+              />
+            </div>
+          </div>
+        ))}
+      {user && user.addresses.length === 0 && (
+        <h5 className="text-center pt-8 text-[18px]">
+          You don't have any saved address!
+        </h5>
+      )}
     </div>
   );
 };

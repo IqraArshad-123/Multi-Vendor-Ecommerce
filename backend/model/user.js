@@ -60,12 +60,27 @@ const userSchema = new mongoose.Schema({
 });
 
 //  Hash password
+// userSchema.pre("save", async function (next) {
+//   if (!this.isModified("password")) {
+//     next();
+//   }
+
+//   this.password = await bcrypt.hash(this.password, 10);
+// });
+
+// === HASH PASSWORD WITH RETURN FIX ===
 userSchema.pre("save", async function (next) {
+  // Agar password change nahi hua, to yahin se RETURN kar jao
   if (!this.isModified("password")) {
-    next();
+    return next(); 
   }
 
-  this.password = await bcrypt.hash(this.password, 10);
+  // Yeh check lagane se double safety ho jayegi
+  if (this.password) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+  
+  next();
 });
 
 
