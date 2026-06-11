@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import {
@@ -14,6 +14,7 @@ import {
   ProfilePage,
   CheckoutPage,
   PaymentPage,
+  OrderSuccessPage,
   ShopCreate,
   SellerActivationPage,
   ShopLoginPage,
@@ -25,7 +26,7 @@ import {
   ShopCreateEvents,
   ShopAllEvents,
   ShopAllCoupouns,
-  ShopPreviewPage
+  ShopPreviewPage,
 } from "./routes/ShopRoutes.js";
 import Store from "./redux/store.js";
 import { loadSeller, loadUser } from "./redux/actions/user.js";
@@ -34,18 +35,36 @@ import { ShopHomePage } from "./ShopRoutes.js";
 import SellerProtectedRoute from "./SellerProtectedRoute.js";
 import { getAllEvents } from "./redux/actions/event.js";
 import { getAllProducts } from "./redux/actions/product.js";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import { server } from "./server.js";
+import axios from "axios";
+
 
 const App = () => {
+
+  const [stripeApiKey, setStripeApiKey] = useState("");
+
+  async function getStripeApiKey() {
+    try {
+      const { data } = await axios.get(`${server}/api/v2/payment/stripeapikey`);
+      setStripeApiKey(data.stripeApikey);
+    } catch (error) {
+      console.error("Stripe API key fetch failed:", error);
+    }
+  }
+
   useEffect(() => {
     Store.dispatch(loadUser());
     Store.dispatch(loadSeller());
     Store.dispatch(getAllProducts());
     Store.dispatch(getAllEvents());
-
+     getStripeApiKey();
   }, []);
 
   return (
     <BrowserRouter>
+      
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -71,7 +90,25 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route path="/payment" element={<PaymentPage />} />
+
+        <Route
+          path="/payment"
+          element={
+            <ProtectedRoute>
+              {stripeApiKey ? (
+                <Elements stripe={loadStripe(stripeApiKey)}>
+                  <PaymentPage />
+                </Elements>
+              ) : (
+                <div className="w-full h-screen flex items-center justify-center text-lg font-semibold">
+                  Loading Payment Gateway...
+                </div>
+              )}
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="/order/success" element={<OrderSuccessPage />} />
 
         <Route
           path="/profile"

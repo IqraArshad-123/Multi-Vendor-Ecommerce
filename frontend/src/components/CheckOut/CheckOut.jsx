@@ -106,11 +106,9 @@ Swal.fire({
 });      return;
     }
 
-    //  Isko lagaein (Yeh dono ko simple text/string bana kar compare karega)
 const isCouponValid = cart.filter(
-  (item) => String(item.shopId) === String(coupon.shopId)
+  (item) => String(item.shopId || item.shop) === String(coupon.shop)
 );
-
     if (isCouponValid.length === 0) {
 Swal.fire({
   icon: 'error',
