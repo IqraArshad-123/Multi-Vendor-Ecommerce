@@ -13,6 +13,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import { RxCross1 } from "react-icons/rx";
 import { Country, State, City } from "country-state-city";
 import { MdOutlineTrackChanges } from "react-icons/md";
+import { getAllOrdersOfUser } from "../../redux/actions/order";
 import Swal from "sweetalert2";
 import {
   deleteUserAddress,
@@ -207,18 +208,14 @@ const ProfileContent = ({ active }) => {
 };
 
 const AllOrders = () => {
-  const orders = [
-    {
-      _id: "7463hvbfbhfbrtr28820221",
-      orderItems: [
-        {
-          name: "Iphone 14 Pro Max",
-        },
-      ],
-      totalPrice: 120,
-      orderStatus: "Processing",
-    },
-  ];
+  const { orders } = useSelector((state) => state.order);
+  const { user } = useSelector((state) => state.user);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getAllOrdersOfUser(user._id));
+  });
 
   const columns = [
     {
@@ -265,7 +262,7 @@ const AllOrders = () => {
       renderCell: (params) => {
         return (
           <>
-            <Link to={`/order/${params.id}`}>
+            <Link to={`/user/order/${params.id}`}>
               <Button>
                 <AiOutlineArrowRight size={20} />
               </Button>
@@ -282,9 +279,9 @@ const AllOrders = () => {
     orders.forEach((item) => {
       row.push({
         id: item._id,
-        itemsQty: item.orderItems.length,
+        itemsQty: item.cart.length,
         total: "US$" + item.totalPrice,
-        status: item.orderStatus,
+        status: item.status,
       });
     });
   return (
@@ -506,7 +503,7 @@ const ChangePassword = () => {
         icon: "success",
         title: "Success!",
         text: "Change Successfully",
-        timer: 4000, 
+        timer: 4000,
         showConfirmButton: false,
       });
       setOldPassword("");

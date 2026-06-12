@@ -20,6 +20,8 @@ import { RxCross1 } from "react-icons/rx";
 
 const Header = ({ activeHeading }) => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
+  const { isSeller } = useSelector((state) => state.seller);
+
   const { allProducts } = useSelector((state) => state.products);
   const { cart } = useSelector((state) => state.cart);
   const { wishlist } = useSelector((state) => state.wishlist);
@@ -96,7 +98,8 @@ const Header = ({ activeHeading }) => {
           <div className={`${styles.button}`}>
             <Link to={"/shop-create"}>
               <h1 className="text-[#fff] flex items-center">
-                Become Seller <IoIosArrowForward className="ml-1" />
+                {isSeller ? "Dashboard" : "Become Seller "}
+                <IoIosArrowForward className="ml-1" />
               </h1>
             </Link>
           </div>
