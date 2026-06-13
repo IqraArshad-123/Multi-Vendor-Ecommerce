@@ -12,7 +12,7 @@ import { Button } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { RxCross1 } from "react-icons/rx";
 import { Country, State, City } from "country-state-city";
-import { MdOutlineTrackChanges } from "react-icons/md";
+import { MdOutlineTrackChanges, MdTrackChanges } from "react-icons/md";
 import { getAllOrdersOfUser } from "../../redux/actions/order";
 import Swal from "sweetalert2";
 import {
@@ -40,7 +40,7 @@ const ProfileContent = ({ active }) => {
       });
       dispatch({ type: "clearErrors" });
     }
-  }, [error]);
+  }, [error, dispatch]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -52,7 +52,6 @@ const ProfileContent = ({ active }) => {
     setAvatar(file);
 
     const formData = new FormData();
-
     formData.append("image", e.target.files[0]);
 
     await axios
@@ -73,10 +72,10 @@ const ProfileContent = ({ active }) => {
         });
       });
   };
+
   return (
     <div className="w-full">
       {/* Profile */}
-
       {active === 1 && (
         <>
           <div className="flex justify-center w-full">
@@ -102,7 +101,7 @@ const ProfileContent = ({ active }) => {
           <br />
           <br />
           <div className="w-full px-5">
-            <form onSubmit={handleSubmit} aria-required={true}>
+            <form onSubmit={handleSubmit}>
               <div className="w-full pb-3 800px:flex block">
                 <div className="w-[100%] 800px:w-[50%]">
                   <label className="block pb-2">Full Name</label>
@@ -165,7 +164,6 @@ const ProfileContent = ({ active }) => {
       )}
 
       {/* Order */}
-
       {active === 2 && (
         <div className="">
           <AllOrders />
@@ -173,7 +171,6 @@ const ProfileContent = ({ active }) => {
       )}
 
       {/* Refund */}
-
       {active === 3 && (
         <div className="">
           <AllRefundOrders />
@@ -181,7 +178,6 @@ const ProfileContent = ({ active }) => {
       )}
 
       {/* Track Order */}
-
       {active === 5 && (
         <div className="">
           <TrackOrder />
@@ -189,7 +185,6 @@ const ProfileContent = ({ active }) => {
       )}
 
       {/* Change Password */}
-
       {active === 6 && (
         <div className="">
           <ChangePassword />
@@ -197,7 +192,6 @@ const ProfileContent = ({ active }) => {
       )}
 
       {/* User Address */}
-
       {active === 7 && (
         <div className="">
           <Address />
@@ -210,21 +204,16 @@ const ProfileContent = ({ active }) => {
 const AllOrders = () => {
   const { orders } = useSelector((state) => state.order);
   const { user } = useSelector((state) => state.user);
-
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(getAllOrdersOfUser(user._id));
-  });
+    if (user?._id) {
+      dispatch(getAllOrdersOfUser(user._id));
+    }
+  }, [dispatch, user?._id]); // FIXED: Added Dependency Array
 
   const columns = [
-    {
-      field: "id",
-      headerName: "Order Id",
-      minWidth: 150,
-      flex: 0.7,
-    },
-
+    { field: "id", headerName: "Order Id", minWidth: 150, flex: 0.7 },
     {
       field: "status",
       headerName: "Status",
@@ -235,23 +224,8 @@ const AllOrders = () => {
         return status === "Delivered" ? "greenColor" : "redColor";
       },
     },
-
-    {
-      field: "itemsQty",
-      headerName: "Items Qty",
-      type: "number",
-      minWidth: 130,
-      flex: 0.7,
-    },
-
-    {
-      field: "total",
-      headerName: "Total",
-      type: "number",
-      minWidth: 130,
-      flex: 0.8,
-    },
-
+    { field: "itemsQty", headerName: "Items Qty", type: "number", minWidth: 130, flex: 0.7 },
+    { field: "total", headerName: "Total", type: "number", minWidth: 130, flex: 0.8 },
     {
       field: " ",
       headerName: " ",
@@ -259,22 +233,17 @@ const AllOrders = () => {
       minWidth: 150,
       flex: 1,
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Link to={`/user/order/${params.id}`}>
-              <Button>
-                <AiOutlineArrowRight size={20} />
-              </Button>
-            </Link>
-          </>
-        );
-      },
+      renderCell: (params) => (
+        <Link to={`/user/order/${params.id}`}>
+          <Button>
+            <AiOutlineArrowRight size={20} />
+          </Button>
+        </Link>
+      ),
     },
   ];
 
   const row = [];
-
   orders &&
     orders.forEach((item) => {
       row.push({
@@ -284,203 +253,132 @@ const AllOrders = () => {
         status: item.status,
       });
     });
+
   return (
     <div className="pl-8 pt-1">
-      <DataGrid
-        rows={row}
-        columns={columns}
-        pageSize={10}
-        disableSelectionOnClick
-        autoHeight
-      />
+      <DataGrid rows={row} columns={columns} pageSize={10} disableSelectionOnClick autoHeight />
     </div>
   );
 };
 
 const AllRefundOrders = () => {
-  const orders = [
-    {
-      _id: "7463hvbfbhfbrtr28820221",
-      orderItems: [
-        {
-          name: "Iphone 14 Pro Max",
-        },
-      ],
-      totalPrice: 120,
-      orderStatus: "Processing",
-    },
-  ];
+  const { orders } = useSelector((state) => state.order);
+  const { user } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (user?._id) {
+      dispatch(getAllOrdersOfUser(user._id));
+    }
+  }, [dispatch, user?._id]); // FIXED: Added Dependency Array
+
+  // FIXED: Filtering only refund status
+  const eligibleOrder =
+    orders && orders.filter((item) => item.status === "Processing refund" || item.status === "Refund Success");
 
   const columns = [
-    {
-      field: "id",
-      headerName: "Order Id",
-      minWidth: 150,
-      flex: 0.7,
-    },
-
+    { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
     {
       field: "status",
       headerName: "Status",
       minWidth: 130,
       flex: 0.7,
-      cellClassName: (params) => {
-        const status = params.value ?? params.row?.status;
-        return status === "Delivered" ? "greenColor" : "redColor";
-      },
+      cellClassName: (params) => (params.value === "Refund Success" ? "greenColor" : "redColor"),
     },
-
-    {
-      field: "itemsQty",
-      headerName: "Items Qty",
-      type: "number",
-      minWidth: 130,
-      flex: 0.7,
-    },
-
-    {
-      field: "total",
-      headerName: "Total",
-      type: "number",
-      minWidth: 130,
-      flex: 0.8,
-    },
-
+    { field: "itemsQty", headerName: "Items Qty", type: "number", minWidth: 130, flex: 0.7 },
+    { field: "total", headerName: "Total", type: "number", minWidth: 130, flex: 0.8 },
     {
       field: " ",
-      headerName: " ",
-      type: "number",
-      minWidth: 150,
       flex: 1,
+      minWidth: 150,
+      headerName: "",
+      type: "number",
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Link to={`/order/${params.id}`}>
-              <Button>
-                <AiOutlineArrowRight size={20} />
-              </Button>
-            </Link>
-          </>
-        );
-      },
+      renderCell: (params) => (
+        <Link to={`/user/order/${params.id}`}>
+          <Button>
+            <AiOutlineArrowRight size={20} />
+          </Button>
+        </Link>
+      ),
     },
   ];
 
   const row = [];
-
-  orders &&
-    orders.forEach((item) => {
+  eligibleOrder &&
+    eligibleOrder.forEach((item) => {
       row.push({
         id: item._id,
-        itemsQty: item.orderItems.length,
-        total: "US$" + item.totalPrice,
-        status: item.orderStatus,
+        itemsQty: item.cart.length,
+        total: "US$ " + item.totalPrice,
+        status: item.status,
       });
     });
+
   return (
     <div className="pl-8 pt-1">
-      <DataGrid
-        rows={row}
-        columns={columns}
-        pageSize={10}
-        disableSelectionOnClick
-        autoHeight
-      />
+      <DataGrid rows={row} columns={columns} pageSize={10} autoHeight disableSelectionOnClick />
     </div>
   );
 };
 
 const TrackOrder = () => {
-  const orders = [
-    {
-      _id: "7463hvbfbhfbrtr28820221",
-      orderItems: [
-        {
-          name: "Iphone 14 Pro Max",
-        },
-      ],
-      totalPrice: 120,
-      orderStatus: "Processing",
-    },
-  ];
+  const { orders } = useSelector((state) => state.order);
+  const { user } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (user?._id) {
+      dispatch(getAllOrdersOfUser(user._id));
+    }
+  }, [dispatch, user?._id]); // FIXED: Added Dependency Array
+
+  // FIXED: Filter out orders that are NOT dynamic tracking related (Exclude delivered/refunded ones if you want to track active ones)
+  const eligibleOrder =
+    orders && orders.filter((item) => item.status !== "Delivered" && item.status !== "Refund Success");
 
   const columns = [
-    {
-      field: "id",
-      headerName: "Order Id",
-      minWidth: 150,
-      flex: 0.7,
-    },
-
+    { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
     {
       field: "status",
       headerName: "Status",
       minWidth: 130,
       flex: 0.7,
-      cellClassName: (params) => {
-        const status = params.value ?? params.row?.status;
-        return status === "Delivered" ? "greenColor" : "redColor";
-      },
+      cellClassName: (params) => (params.value === "Delivered" ? "greenColor" : "redColor"),
     },
-
-    {
-      field: "itemsQty",
-      headerName: "Items Qty",
-      type: "number",
-      minWidth: 130,
-      flex: 0.7,
-    },
-
-    {
-      field: "total",
-      headerName: "Total",
-      type: "number",
-      minWidth: 130,
-      flex: 0.8,
-    },
-
+    { field: "itemsQty", headerName: "Items Qty", type: "number", minWidth: 130, flex: 0.7 },
+    { field: "total", headerName: "Total", type: "number", minWidth: 130, flex: 0.8 },
     {
       field: " ",
-      headerName: " ",
-      type: "number",
-      minWidth: 150,
       flex: 1,
+      minWidth: 150,
+      headerName: "",
+      type: "number",
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Link to={`/order/${params.id}`}>
-              <Button>
-                <MdOutlineTrackChanges size={20} />
-              </Button>
-            </Link>
-          </>
-        );
-      },
+      renderCell: (params) => (
+        <Link to={`/user/track/order/${params.id}`}>
+          <Button>
+            <MdTrackChanges size={20} />
+          </Button>
+        </Link>
+      ),
     },
   ];
 
   const row = [];
-
-  orders &&
-    orders.forEach((item) => {
+  eligibleOrder &&
+    eligibleOrder.forEach((item) => {
       row.push({
         id: item._id,
-        itemsQty: item.orderItems.length,
-        total: "US$" + item.totalPrice,
-        status: item.orderStatus,
+        itemsQty: item.cart.length,
+        total: "US$ " + item.totalPrice,
+        status: item.status,
       });
     });
+
   return (
     <div className="pl-8 pt-1">
-      <DataGrid
-        rows={row}
-        columns={columns}
-        pageSize={10}
-        disableSelectionOnClick
-        autoHeight
-      />
+      <DataGrid rows={row} columns={columns} autoHeight disableRowSelectionOnClick pageSize={10} />
     </div>
   );
 };
@@ -492,12 +390,11 @@ const ChangePassword = () => {
 
   const passwordChangeHandler = async (e) => {
     e.preventDefault();
-
     try {
       await axios.put(
         `${server}/api/v2/user/update-user-password`,
         { oldPassword, newPassword, confirmPassword },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       Swal.fire({
         icon: "success",
@@ -518,21 +415,16 @@ const ChangePassword = () => {
       });
     }
   };
+
   return (
     <div className="w-full px-5">
       <h1 className="block text-center text-[25px] font-[600] text-[#000000ba] pb-2">
         Change Password
       </h1>
       <div className="w-full">
-        <form
-          onSubmit={passwordChangeHandler}
-          className="flex flex-col items-center space-y-4"
-        >
-          {/* Old Password */}
+        <form onSubmit={passwordChangeHandler} className="flex flex-col items-center space-y-4">
           <div className="w-full max-w-md">
-            <label className="block pb-1 text-sm font-medium">
-              Enter your old password
-            </label>
+            <label className="block pb-1 text-sm font-medium">Enter your old password</label>
             <input
               type="password"
               className="w-full h-9 px-2 border rounded text-sm focus:outline-none focus:ring focus:ring-indigo-300"
@@ -541,12 +433,8 @@ const ChangePassword = () => {
               onChange={(e) => setOldPassword(e.target.value)}
             />
           </div>
-
-          {/* New Password */}
           <div className="w-full max-w-md">
-            <label className="block pb-1 text-sm font-medium">
-              Enter your new password
-            </label>
+            <label className="block pb-1 text-sm font-medium">Enter your new password</label>
             <input
               type="password"
               className="w-full h-9 px-2 border rounded text-sm focus:outline-none focus:ring focus:ring-indigo-300"
@@ -555,12 +443,8 @@ const ChangePassword = () => {
               onChange={(e) => setNewPassword(e.target.value)}
             />
           </div>
-
-          {/* Confirm Password */}
           <div className="w-full max-w-md">
-            <label className="block pb-1 text-sm font-medium">
-              Enter your confirm password
-            </label>
+            <label className="block pb-1 text-sm font-medium">Enter your confirm password</label>
             <input
               type="password"
               className="w-full h-9 px-2 border rounded text-sm focus:outline-none focus:ring focus:ring-indigo-300"
@@ -569,8 +453,6 @@ const ChangePassword = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </div>
-
-          {/* Submit Button */}
           <div className="w-full max-w-md">
             <input
               type="submit"
@@ -595,21 +477,10 @@ const Address = () => {
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
-  const addressTypeData = [
-    {
-      name: "Default",
-    },
-    {
-      name: "Home",
-    },
-    {
-      name: "Office",
-    },
-  ];
+  const addressTypeData = [{ name: "Default" }, { name: "Home" }, { name: "Office" }];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (addressType === "" || country === "" || city === "") {
       Swal.fire({
         icon: "error",
@@ -618,16 +489,7 @@ const Address = () => {
         confirmButtonText: "OK",
       });
     } else {
-      dispatch(
-        updatUserAddress(
-          country,
-          city,
-          address1,
-          address2,
-          zipCode,
-          addressType,
-        ),
-      );
+      dispatch(updatUserAddress(country, city, address1, address2, zipCode, addressType));
       setOpen(false);
       setCountry("");
       setCity("");
@@ -648,20 +510,12 @@ const Address = () => {
         <div className="fixed top-0 left-0 w-full h-screen bg-[#0000004b] flex items-center justify-center z-10">
           <div className="w-[35%] h-[80vh] bg-white rounded shadow relative overflow-y-scroll">
             <div className="flex w-full justify-end p-3">
-              <RxCross1
-                size={30}
-                className="cursor-pointer"
-                onClick={() => setOpen(false)}
-              />
+              <RxCross1 size={30} className="cursor-pointer" onClick={() => setOpen(false)} />
             </div>
-            <h1 className="text-center text-[25px] font-Poppins">
-              Add New Address
-            </h1>
-
+            <h1 className="text-center text-[25px] font-Poppins">Add New Address</h1>
             <div className="w-full">
-              <form aria-required onSubmit={handleSubmit} className="w-full">
+              <form onSubmit={handleSubmit} className="w-full">
                 <div className="w-full block p-4">
-                  {/* Country */}
                   <div className="w-full pb-2">
                     <label className="block pb-2">Country</label>
                     <select
@@ -679,7 +533,6 @@ const Address = () => {
                     </select>
                   </div>
 
-                  {/* City */}
                   <div className="w-full pb-2">
                     <label className="block pb-2">Choose your City</label>
                     <select
@@ -697,7 +550,6 @@ const Address = () => {
                     </select>
                   </div>
 
-                  {/* Address 1 */}
                   <div className="w-full pb-2">
                     <label className="block pb-2">Address 1</label>
                     <input
@@ -709,7 +561,6 @@ const Address = () => {
                     />
                   </div>
 
-                  {/* Address 2 */}
                   <div className="w-full pb-2">
                     <label className="block pb-2">Address 2</label>
                     <input
@@ -721,7 +572,6 @@ const Address = () => {
                     />
                   </div>
 
-                  {/* Zip Code */}
                   <div className="w-full pb-2">
                     <label className="block pb-2">Zip Code</label>
                     <input
@@ -733,7 +583,6 @@ const Address = () => {
                     />
                   </div>
 
-                  {/* Address Type */}
                   <div className="w-full pb-2">
                     <label className="block pb-2">Address Type</label>
                     <select
@@ -751,14 +600,8 @@ const Address = () => {
                     </select>
                   </div>
 
-                  {/* Submit */}
                   <div className="w-full pb-2">
-                    <input
-                      type="submit"
-                      className={`${styles.input} mt-5 cursor-pointer`}
-                      required
-                      readOnly
-                    />
+                    <input type="submit" className={`${styles.input} mt-5 cursor-pointer`} />
                   </div>
                 </div>
               </form>
@@ -767,13 +610,8 @@ const Address = () => {
         </div>
       )}
       <div className="w-full flex items-center justify-between">
-        <h1 className="text-[25px] font-[600] text-[#000000ba] pb-2">
-          My Addresses
-        </h1>
-        <div
-          className={`${styles.button} !rounded-md`}
-          onClick={() => setOpen(true)}
-        >
+        <h1 className="text-[25px] font-[600] text-[#000000ba] pb-2">My Addresses</h1>
+        <div className={`${styles.button} !rounded-md`} onClick={() => setOpen(true)}>
           <span className="text-[#fff]">Add New</span>
         </div>
       </div>
@@ -805,11 +643,10 @@ const Address = () => {
           </div>
         ))}
       {user && user.addresses.length === 0 && (
-        <h5 className="text-center pt-8 text-[18px]">
-          You don't have any saved address!
-        </h5>
+        <h5 className="text-center pt-8 text-[18px]">You don't have any saved address!</h5>
       )}
     </div>
   );
 };
+
 export default ProfileContent;

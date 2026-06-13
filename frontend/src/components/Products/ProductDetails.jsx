@@ -8,6 +8,7 @@ import {
   AiOutlineShoppingCart,
 } from "react-icons/ai";
 import { backend_url } from "../../server";
+import Ratings from "./Ratings";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addToWishlist,
@@ -86,6 +87,10 @@ const ProductDetails = ({ data }) => {
       }
     }
   };
+
+  const totalReviewsLength =
+    products &&
+    products.reduce((acc, product) => acc + (product?.reviews?.length || 0), 0);
 
   const handleMessageSubmit = () => {
     navigate("/inbox?conversation=507rbebfsvnjvndfgb");
@@ -219,7 +224,7 @@ const ProductDetails = ({ data }) => {
               </div>
             </div>
           </div>
-          <ProductDetailsInfo data={data} products={products} />
+          <ProductDetailsInfo data={data} products={products} totalReviewsLength={totalReviewsLength}/>
           <br />
           <br />
         </div>
@@ -228,7 +233,7 @@ const ProductDetails = ({ data }) => {
   );
 };
 
-const ProductDetailsInfo = ({ data, products }) => {
+const ProductDetailsInfo = ({ data, products, totalReviewsLength }) => {
   const [active, setActive] = useState(1);
   return (
     <div className="bg-[#f5f6fb] px-3 800px:px-10 py-2 rounded">
@@ -275,11 +280,36 @@ const ProductDetailsInfo = ({ data, products }) => {
         </>
       ) : null}
 
-      {active === 2 ? (
-        <div className="w-full justify-center min-h-[40vh] flex items-center">
-          <p>No Reviews yet!</p>
+      {active === 2 && (
+        <div className="w-full min-h-[40vh] flex flex-col items-center py-3 overflow-y-scroll">
+          {data?.reviews?.length > 0 ? (
+            data.reviews.map((item, index) => (
+              <div key={item._id || index} className="w-full flex my-2">
+                <img
+                  src={
+                    item?.user?.avatar
+                      ? `${backend_url}/${item.user.avatar}`
+                      : "/default-avatar.png"
+                  }
+                  alt="user avatar"
+                  className="w-[50px] h-[50px] rounded-full object-cover"
+                />
+                <div className="pl-2">
+                  <div className="w-full flex items-center">
+                    <h1 className="font-[500] mr-3">
+                      {item?.user?.name || "Anonymous"}
+                    </h1>
+                    <Ratings rating={item?.rating || 0} />
+                  </div>
+                  <p>{item?.comment || "No comment provided."}</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <h5>No Reviews have for this product!</h5>
+          )}
         </div>
-      ) : null}
+      )}
 
       {active === 3 && (
         <div className="w-full block 800px:flex p-5">

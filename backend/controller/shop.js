@@ -203,4 +203,99 @@ router.get(
   }),
 );
 
+// update shop profile pic 
+router.put(
+  "/update-shop-avatar",
+  isSeller,
+  upload.single("image"),
+  async (req, res, next) => {
+    try {
+      const sellerId = req.seller?._id || req.seller?.id;
+      
+      if (!sellerId) {
+        return next(new ErrorHandler("Authentication failed. No seller ID found.", 400));
+      }
+
+      const existsUser = await Shop.findById(sellerId);
+
+      if (!existsUser) {
+        return next(new ErrorHandler("Seller not found in database", 404));
+      }
+
+      if (req.file) {
+        if (existsUser.avatar) {
+          try {
+            const rootPath = path.join(__dirname, "../", "uploads", existsUser.avatar);
+            const localPath = path.join(__dirname, "uploads", existsUser.avatar);
+
+            if (fs.existsSync(rootPath)) {
+              fs.unlinkSync(rootPath);
+            } else if (fs.existsSync(localPath)) {
+              fs.unlinkSync(localPath);
+            }
+          } catch (pathErr) {
+            console.log("Old file delete error (Ignored safely):", pathErr.message);
+          }
+        }
+
+        await Shop.findByIdAndUpdate(sellerId, {
+          avatar: req.file.filename
+        });
+
+      } else {
+        return next(new ErrorHandler("Please upload an image file", 400));
+      }
+
+      const updatedSeller = await Shop.findById(sellerId);
+
+      res.status(200).json({
+        success: true,
+        seller: updatedSeller,
+      });
+    } catch (error) {
+      console.error("--- UPDATE AVATAR ERROR LOG ---", error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+// update seller info 
+router.put(
+  "/update-seller-info",
+  isSeller,
+  async (req, res, next) => {
+    try {
+      const { name, description, address, phoneNumber, zipCode } = req.body;
+      const sellerId = req.seller?._id || req.seller?.id;
+
+      if (!sellerId) {
+        return next(new ErrorHandler("Authentication failed. No seller ID found.", 400));
+      }
+
+      const updatedShop = await Shop.findByIdAndUpdate(
+        sellerId,
+        {
+          name,
+          description,
+          address,
+          phoneNumber,
+          zipCode,
+        },
+        { new: true, runValidators: true } 
+      );
+
+      if (!updatedShop) {
+        return next(new ErrorHandler("Shop not found", 400));
+      }
+
+      res.status(201).json({
+        success: true,
+        shop: updatedShop,
+      });
+    } catch (error) {
+      console.error("--- UPDATE SELLER INFO ERROR LOG ---", error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
 module.exports = router;
