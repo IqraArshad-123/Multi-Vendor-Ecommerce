@@ -20,6 +20,7 @@ import {
   ShopLoginPage,
   OrderDetailsPage,
   TrackOrderPage,
+  UserInbox
 } from "./Routes.jsx";
 import {
   ShopDashboardPage,
@@ -123,6 +124,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inbox"
+          element={
+            <ProtectedRoute>
+              <UserInbox />
             </ProtectedRoute>
           }
         />

@@ -303,7 +303,7 @@ const MessageList = ({
     >
       <div className="relative">
         <img
-          src="http://localhost:8000/82470b4ed44c3edacfcd4201e2297050-1781110371927-17520139.png"
+          src="http://localhost:8000/82470b4ed44c3edacfcd4201e2297050-1781385173172-646426852.png"
           alt=""
           className="w-[50px] h-[50px] rounded-full"
         />
@@ -346,7 +346,7 @@ const SellerInbox = ({
       <div className="w-full flex p-3 items-center justify-between bg-slate-200">
         <div className="flex">
           <img
-            src="http://localhost:8000/82470b4ed44c3edacfcd4201e2297050-1781110371927-17520139.png"
+            src="http://localhost:8000/82470b4ed44c3edacfcd4201e2297050-1781385173172-646426852.png"
             alt=""
             className="w-[60px] h-[60px] rounded-full"
           />
@@ -375,7 +375,7 @@ const SellerInbox = ({
             >
               {item.sender !== sellerId && (
                 <img
-                  src="http://localhost:8000/82470b4ed44c3edacfcd4201e2297050-1781110371927-17520139.png"
+                  src="http://localhost:8000/82470b4ed44c3edacfcd4201e2297050-1781385173172-646426852.png"
                   className="w-[40px] h-[40px] rounded-full mr-3"
                   alt=""
                 />
@@ -401,13 +401,7 @@ const SellerInbox = ({
                       ))
                     ) : (
                       <img
-                        src={
-                          item.images.url
-                            ? `${item.images.url}`
-                            : item.images.startsWith("data:")
-                            ? item.images
-                            : `${item.images}`
-                        }
+                        src="http://localhost:8000/82470b4ed44c3edacfcd4201e2297050-1781385173172-646426852.png"
                         className="w-[150px] h-[150px] object-cover rounded-[10px]"
                         alt="message-img"
                       />
