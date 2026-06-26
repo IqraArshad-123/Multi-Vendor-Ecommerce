@@ -10,8 +10,8 @@ app.use(cookieParser());
 
 // ========== FIXED: Allowed both 3000 and 3001 ports to prevent CORS Block ==========
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001"],
-  credentials: true,                // important! for withCredentials
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  credentials: true,
 }));
 
 app.use("/", express.static("uploads"));
