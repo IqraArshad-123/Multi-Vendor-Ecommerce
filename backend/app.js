@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
+app.enable('trust proxy'); // Ye Railway ke liye bohot zaroori hai
 app.use(express.json());
 app.use(cookieParser());
 
