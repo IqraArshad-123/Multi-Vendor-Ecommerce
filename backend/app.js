@@ -10,7 +10,7 @@ app.use(cookieParser());
 
 // ========== FIXED: Allowed both 3000 and 3001 ports to prevent CORS Block ==========
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  origin: ["https://multi-vendor-ecommerce-sooty-one.vercel.app"],
   credentials: true,
 }));
 
