@@ -48,6 +48,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { server } from "./server.js";
 import axios from "axios";
+axios.defaults.withCredentials = true;
 
 
 const App = () => {
