@@ -1,47 +1,79 @@
 const express = require("express");
 const router = express.Router();
 const Product = require("../model/product");
-const { upload } = require("../multer");
+const upload = require("../multer");
+
 const Shop = require("../model/shop");
 const Order = require("../model/order");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
 const { isSeller, isAuthenticated } = require("../middleware/auth");
 const fs = require("fs");
+const cloudinary = require("../cloudinary");
 
-// create product
 
+// ============================================================
+// 1. Create Product Route (Cloudinary Upload Stream)
+// ============================================================
 router.post(
   "/create-product",
-  upload.array("images"),
+  upload.array("images"), // multer array for multiple images
   catchAsyncErrors(async (req, res, next) => {
     try {
       const shopId = req.body.shopId;
       const shop = await Shop.findById(shopId);
+
       if (!shop) {
         return next(new ErrorHandler("Shop Id is invalid", 400));
-      } else {
-        const files = req.files;
-        const imageUrls = files.map((file) => `${file.filename}`);
-        const productData = req.body;
-        productData.images = imageUrls;
-        productData.shop = shop;
-
-        const product = await Product.create(productData);
-
-        res.status(201).json({
-          success: true,
-          product,
-        });
       }
+
+      const files = req.files;
+      if (!files || files.length === 0) {
+        return next(new ErrorHandler("Please upload at least one product image", 400));
+      }
+
+      // Multiple images ko Cloudinary par upload krny ka loop
+      const imagesLinks = [];
+      for (const file of files) {
+        try {
+          const resultUrl = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+              { folder: "products" }, // Cloudinary par "products" ka folder banega
+              (error, result) => {
+                if (error) reject(error);
+                else resolve(result.secure_url);
+              }
+            );
+            stream.end(file.buffer);
+          });
+          imagesLinks.push(resultUrl); // Har image ka link array mn add hoga
+        } catch (uploadError) {
+          console.error("Single product image upload failed:", uploadError);
+          return next(new ErrorHandler("Failed to upload product images", 500));
+        }
+      }
+
+      // Product ka saara data samait images links k save krien
+      const productData = req.body;
+      productData.images = imagesLinks; // DB mn online links save hon gy
+      productData.shop = shop;
+
+      const product = await Product.create(productData);
+
+      res.status(201).json({
+        success: true,
+        product,
+      });
     } catch (error) {
-      return next(new ErrorHandler(error, 400));
+      console.error("Create product error:", error);
+      return next(new ErrorHandler(error.message, 500));
     }
-  }),
+  })
 );
 
-// get all products of a shop
-
+// ============================================================
+// 2. Get All Products of a Shop
+// ============================================================
 router.get(
   "/get-all-products-shop/:id",
   catchAsyncErrors(async (req, res, next) => {
@@ -55,34 +87,40 @@ router.get(
     } catch (error) {
       return next(new ErrorHandler(error, 400));
     }
-  }),
+  })
 );
 
-// delete product of a shop
-
+// ============================================================
+// 3. Delete Product Route (Cloudinary Destroy Integration)
+// ============================================================
 router.delete(
   "/delete-shop-product/:id",
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const productId = req.params.id;
-
       const productData = await Product.findById(productId);
 
-      productData.images.forEach((imageUrl) => {
-        const filename = imageUrl;
-        const filePath = `uploads/${filename}`;
+      if (!productData) {
+        return next(new ErrorHandler("Product not found with this id!", 404));
+      }
 
-        fs.unlink(filePath, (err) => {
-          if (err) {
-            console.log(err);
+      // Cloudinary sy product ki saari images loop chala kr delete krien
+      if (productData.images && productData.images.length > 0) {
+        for (const imageUrl of productData.images) {
+          try {
+            // URL sy public_id extract krna (e.g., products/abc123xyz)
+            const imageId = imageUrl.split("/").pop().split(".")[0];
+            await cloudinary.uploader.destroy(`products/${imageId}`);
+          } catch (delError) {
+            console.error("Cloudinary product image deletion failed:", delError);
           }
-        });
-      });
+        }
+      }
 
+      // Database sy product ko delete krien
       const product = await Product.findByIdAndDelete(productId);
 
-      console.log(product.images);
       if (!product) {
         return next(new ErrorHandler("Product not found with this id!", 500));
       }
@@ -92,11 +130,14 @@ router.delete(
         message: "Product Deleted Successfully",
       });
     } catch (error) {
-      return next(new ErrorHandler(error, 400));
+      return next(new ErrorHandler(error.message, 400));
     }
-  }),
+  })
 );
 
+// ============================================================
+// 4. Get All Products (For Home / Search Page)
+// ============================================================
 router.get(
   "/get-all-products",
   catchAsyncErrors(async (req, res, next) => {
@@ -110,10 +151,12 @@ router.get(
     } catch (error) {
       return next(new ErrorHandler(error, 400));
     }
-  }),
+  })
 );
 
-// review for a product
+// ============================================================
+// 5. Review for a Product
+// ============================================================
 router.put(
   "/create-new-review",
   isAuthenticated,
@@ -153,7 +196,7 @@ router.put(
 
       const existingReviewIndex = product.reviews.findIndex(
         (rev) =>
-          rev && rev.user && String(rev.user._id) === String(req.user._id),
+          rev && rev.user && String(rev.user._id) === String(req.user._id)
       );
 
       if (existingReviewIndex !== -1) {
@@ -165,7 +208,7 @@ router.put(
 
       const total = product.reviews.reduce(
         (sum, rev) => sum + Number(rev?.rating || 0),
-        0,
+        0
       );
       product.ratings = product.reviews.length
         ? total / product.reviews.length
@@ -187,7 +230,7 @@ router.put(
             },
           ],
           upsert: false,
-        },
+        }
       );
 
       return res.status(200).json({
@@ -202,6 +245,7 @@ router.put(
         message: error.message || "Internal Server Error in review submission",
       });
     }
-  }),
+  })
 );
+
 module.exports = router;

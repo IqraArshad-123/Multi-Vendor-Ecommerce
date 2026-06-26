@@ -3,7 +3,8 @@ const path = require("path");
 const router = express.Router();
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
-const { upload } = require("../multer");
+const upload = require("../multer");
+
 const sendMail = require("../utils/sendMail");
 const sendToken = require("../utils/jwtToken");
 const Shop = require("../model/shop");
@@ -11,39 +12,54 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const sendShopToken = require("../utils/shopToken");
 const { isSeller } = require("../middleware/auth");
+const cloudinary = require("../cloudinary");
 
+
+// ============================================================
+// 1. Create Shop Route (Cloudinary Integration)
+// ============================================================
 router.post("/create-shop", upload.single("file"), async (req, res, next) => {
   try {
     const { email } = req.body;
     const sellerEmail = await Shop.findOne({ email });
 
     if (sellerEmail) {
-      const filename = req.file.filename;
-      const filePath = `uploads/${filename}`;
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.log(err);
-          res.status(500).json({ message: "Error deleting file" });
-        }
-      });
       return next(new ErrorHandler("User already exists", 400));
     }
 
-    const filename = req.file.filename;
-    const fileUrl = path.join(filename);
+    if (!req.file) {
+      return next(new ErrorHandler("Please upload a logo/avatar for your shop", 400));
+    }
+
+    // Logo image ko Cloudinary pr upload krien (Buffer Stream k zariye)
+    let shopAvatarUrl = "";
+    try {
+      shopAvatarUrl = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "shops" }, // Cloudinary pr "shops" ka folder banega
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result.secure_url);
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+    } catch (cloudError) {
+      console.error("Cloudinary shop register upload failed:", cloudError);
+      return next(new ErrorHandler("Failed to upload shop avatar", 500));
+    }
 
     const seller = {
       name: req.body.name,
       email: email,
       password: req.body.password,
-      avatar: fileUrl,
+      avatar: shopAvatarUrl, // Online Cloudinary URL save hoga
       address: req.body.address,
       phoneNumber: req.body.phoneNumber,
       zipCode: req.body.zipCode,
     };
 
     const activationToken = createActivationToken(seller);
-
     const activationUrl = `http://localhost:3000/seller/activation/${activationToken}`;
 
     try {
@@ -67,7 +83,7 @@ router.post("/create-shop", upload.single("file"), async (req, res, next) => {
 // ========== Create Activation Token ==========
 const createActivationToken = (seller) => {
   return jwt.sign(seller, process.env.ACTIVATION_SECRET, {
-    expiresIn: "15m", // 15 minutes for testing
+    expiresIn: "15m",
   });
 };
 
@@ -80,7 +96,7 @@ router.post(
 
       const newSeller = jwt.verify(
         activation_token,
-        process.env.ACTIVATION_SECRET,
+        process.env.ACTIVATION_SECRET
       );
 
       if (!newSeller) {
@@ -109,11 +125,10 @@ router.post(
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
-  }),
+  })
 );
 
-// login Shop
-
+// ========== Login Shop ==========
 router.post(
   "/login-shop",
   catchAsyncErrors(async (req, res, next) => {
@@ -132,7 +147,7 @@ router.post(
 
       if (!isPasswordValid) {
         return next(
-          new ErrorHandler("Please provide the correct information", 400),
+          new ErrorHandler("Please provide the correct information", 400)
         );
       }
 
@@ -140,11 +155,10 @@ router.post(
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
-  }),
+  })
 );
 
-// load Shop
-
+// ========== Load Shop ==========
 router.get(
   "/getSeller",
   isSeller,
@@ -163,11 +177,10 @@ router.get(
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
-  }),
+  })
 );
 
-// log out from shop
-
+// ========== Log Out From Shop ==========
 router.get(
   "/logout",
   catchAsyncErrors(async (req, res, next) => {
@@ -184,10 +197,10 @@ router.get(
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
-  }),
+  })
 );
 
-// get shop info
+// ========== Get Shop Info ==========
 router.get(
   "/get-shop-info/:id",
   catchAsyncErrors(async (req, res, next) => {
@@ -200,10 +213,12 @@ router.get(
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
-  }),
+  })
 );
 
-// update shop profile pic 
+// ============================================================
+// 2. Update Shop Profile Pic (Cloudinary Integration)
+// ============================================================
 router.put(
   "/update-shop-avatar",
   isSeller,
@@ -222,29 +237,42 @@ router.put(
         return next(new ErrorHandler("Seller not found in database", 404));
       }
 
-      if (req.file) {
-        if (existsUser.avatar) {
-          try {
-            const rootPath = path.join(__dirname, "../", "uploads", existsUser.avatar);
-            const localPath = path.join(__dirname, "uploads", existsUser.avatar);
-
-            if (fs.existsSync(rootPath)) {
-              fs.unlinkSync(rootPath);
-            } else if (fs.existsSync(localPath)) {
-              fs.unlinkSync(localPath);
-            }
-          } catch (pathErr) {
-            console.log("Old file delete error (Ignored safely):", pathErr.message);
-          }
-        }
-
-        await Shop.findByIdAndUpdate(sellerId, {
-          avatar: req.file.filename
-        });
-
-      } else {
+      if (!req.file) {
         return next(new ErrorHandler("Please upload an image file", 400));
       }
+
+      // 1. Agar shop ka pehle sy avatar hai to usay Cloudinary sy delete krien
+      if (existsUser.avatar && existsUser.avatar.includes("cloudinary")) {
+        try {
+          const imageId = existsUser.avatar.split("/").pop().split(".")[0];
+          await cloudinary.uploader.destroy(`shops/${imageId}`);
+        } catch (delError) {
+          console.log("Old shop avatar delete error (Ignored safely):", delError.message);
+        }
+      }
+
+      // 2. Nayi image ko Cloudinary pr upload krien
+      let newAvatarUrl = "";
+      try {
+        newAvatarUrl = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "shops" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result.secure_url);
+            }
+          );
+          stream.end(req.file.buffer);
+        });
+      } catch (cloudError) {
+        console.error("Cloudinary shop avatar update failed:", cloudError);
+        return next(new ErrorHandler("Failed to upload new avatar", 500));
+      }
+
+      // 3. DB mn URL update krien
+      await Shop.findByIdAndUpdate(sellerId, {
+        avatar: newAvatarUrl
+      });
 
       const updatedSeller = await Shop.findById(sellerId);
 
@@ -259,7 +287,7 @@ router.put(
   }
 );
 
-// update seller info 
+// ========== Update Seller Info ==========
 router.put(
   "/update-seller-info",
   isSeller,
@@ -297,5 +325,7 @@ router.put(
       return next(new ErrorHandler(error.message, 500));
     }
   }
+
 );
+
 module.exports = router;

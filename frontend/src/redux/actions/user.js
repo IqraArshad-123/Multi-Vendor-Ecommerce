@@ -1,7 +1,7 @@
 import axios from "axios";
 import { server } from "../../server.js";
 
-//load user
+// ========== Load User ==========
 export const loadUser = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadUserRequest" });
@@ -22,7 +22,7 @@ export const loadUser = () => async (dispatch) => {
   }
 };
 
-//load seller
+// ========== Load Seller ==========
 export const loadSeller = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadSellerRequest" });
@@ -43,8 +43,7 @@ export const loadSeller = () => async (dispatch) => {
   }
 };
 
-//user update information
-
+// ========== User Update Information ==========
 export const updateUserInfomation =
   (name, email, phoneNumber, password) => async (dispatch) => {
     try {
@@ -53,7 +52,7 @@ export const updateUserInfomation =
       const { data } = await axios.put(
         `${server}/api/v2/user/update-user-info`,
         { name, email, phoneNumber, password },
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
       dispatch({
@@ -63,12 +62,13 @@ export const updateUserInfomation =
     } catch (error) {
       dispatch({
         type: "updateUserInfoFailed",
-        payload: error.response.data.message,
+        // FIXED: Added optional chaining to prevent crashes
+        payload: error.response?.data?.message || error.message,
       });
     }
   };
 
-  // update user address
+// ========== Update User Address ==========
 export const updatUserAddress =
   (country, city, address1, address2, zipCode, addressType) =>
   async (dispatch) => {
@@ -92,17 +92,18 @@ export const updatUserAddress =
 
       dispatch({
         type: "updateUserAddressSuccess",
-        payload: data.user
+        payload: data.user,
       });
     } catch (error) {
       dispatch({
         type: "updateUserAddressFailed",
-        payload: error.response.data.message,
+        // FIXED: Added optional chaining to prevent crashes
+        payload: error.response?.data?.message || error.message,
       });
     }
   };
 
-    // delete user address
+// ========== Delete User Address ==========
 export const deleteUserAddress = (id) => async (dispatch) => {
   try {
     dispatch({
@@ -116,12 +117,12 @@ export const deleteUserAddress = (id) => async (dispatch) => {
 
     dispatch({
       type: "deleteUserAddressSuccess",
-      payload: data.user
+      payload: data.user,
     });
   } catch (error) {
     dispatch({
       type: "deleteUserAddressFailed",
-      payload: error.response.data.message,
+      payload: error.response?.data?.message || error.message,
     });
   }
 };

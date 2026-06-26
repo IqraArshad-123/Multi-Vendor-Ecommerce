@@ -6,6 +6,14 @@ process.on("uncaughtException", (err) => {
   console.log(`Error: ${err.message}`);
   console.log(`Shutting down due to uncaught exception`);
 });
+// Cloudinary is optional during development; avoid crashing if the package/env is missing.
+const cloudinary = (() => {
+  try {
+    return require("./cloudinary");
+  } catch (e) {
+    return null;
+  }
+})();
 
 // Config
 if (process.env.NODE_ENV !== "PRODUCTION") {

@@ -3,7 +3,10 @@ const router = express.Router();
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const Stripe = require("stripe");
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripeSecret = process.env.STRIPE_SECRET_KEY;
+// Avoid crashing server boot if env is not set
+const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
+
 
 router.post(
   "/process",
@@ -11,8 +14,16 @@ router.post(
     try {
       const { amount } = req.body;
 
+      if (!stripe) {
+        return res.status(500).json({
+          success: false,
+          error: "Stripe is not configured (missing STRIPE_SECRET_KEY)",
+        });
+      }
+
       // Create PaymentIntent
       const paymentIntent = await stripe.paymentIntents.create({
+
         amount, // amount in cents
         currency: "usd",
         metadata: {

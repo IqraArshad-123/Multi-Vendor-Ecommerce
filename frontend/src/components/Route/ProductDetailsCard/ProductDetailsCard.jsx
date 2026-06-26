@@ -37,6 +37,7 @@ const ProductDetailsCard = ({ setOpen, data }) => {
   const imgSource =
     data?.image_Url?.[0]?.url || (data?.images?.[0] && `${data.images[0]}`);
 
+  // ========== FIXED: Balanced Bracket Indentation & Logic ==========
   const addToCartHandler = (id) => {
     const isItemExists = cart && cart.find((i) => i._id === id);
 
@@ -47,14 +48,14 @@ const ProductDetailsCard = ({ setOpen, data }) => {
         text: "Item already in cart!",
       });
     } else {
-      if (data.stock < count) {
+      if (data?.stock < count) {
         Swal.fire({
           icon: "warning",
           title: "Stock Limited",
           text: "Product stock limited!",
         });
       } else {
-        const cartData = { ...data, qty: count };
+        const cartData = { ...(data || {}), qty: count };
 
         dispatch(addToCart(cartData));
 
@@ -70,12 +71,12 @@ const ProductDetailsCard = ({ setOpen, data }) => {
   };
 
   useEffect(() => {
-    if (wishlist && wishlist.find((i) => i._id === data._id)) {
+    if (wishlist && wishlist.find((i) => i._id === data?._id)) {
       setClick(true);
     } else {
       setClick(false);
     }
-  }, [wishlist]);
+  }, [wishlist, data]);
 
   const removeFromWishlistHandler = (data) => {
     setClick(!click);
@@ -189,7 +190,7 @@ const ProductDetailsCard = ({ setOpen, data }) => {
                 </div>
                 <div
                   className={`${styles.button} mt-6 flex items-center h-11`}
-                  onClick={() => addToCartHandler(data._id)}
+                  onClick={() => addToCartHandler(data?._id)}
                 >
                   <span className="text-[#fff] flex items-center">
                     Add to Cart <AiOutlineShoppingCart className="ml-1" />
