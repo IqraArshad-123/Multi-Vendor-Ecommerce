@@ -1,12 +1,13 @@
 const sendShopToken = (user, statusCode, res) => {
   const token = user.getJwtToken();
 
+  const isProduction = process.env.NODE_ENV === "PRODUCTION";
+
   const options = {
     expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
     httpOnly: true,
-
-    sameSite: "lax",   // 🔥 REQUIRED for cross-origin (3000 ↔ 8000)
-    secure: false,    // 🔥 localhost ke liye false
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
   };
 
   res

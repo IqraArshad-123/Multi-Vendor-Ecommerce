@@ -1,13 +1,13 @@
 const sendToken = (user, statusCode, res) => {
   const token = user.getJwtToken();
 
-  // Production ke liye options
+  const isProduction = process.env.NODE_ENV === "PRODUCTION";
+
   const options = {
     expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    sameSite: "none", 
-    secure: true,
-    partitioned: true,     
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
   };
 
   res
