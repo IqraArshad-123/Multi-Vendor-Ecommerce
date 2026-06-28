@@ -324,7 +324,7 @@ router.post("/create-user", upload.single("file"), async (req, res, next) => {
 
     const user = { name, email, password, avatar: avatarUrl };
     const activationToken = createActivationToken(user);
-    const activationUrl = `https://mv92.netlify.app/activation/${activationToken}`;
+    const activationUrl = `${process.env.FRONTEND_URL}/activation/${activationToken}`;
 
     await sendMail({
       email: user.email,
