@@ -348,10 +348,20 @@ const createActivationToken = (user) => {
 // ========== Activate User Route ==========
 router.post("/activation", catchAsyncErrors(async (req, res, next) => {
   const { activation_token } = req.body;
-  const newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
+  
+  let newUser;
+  try {
+    newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
+  } catch (err) {
+    return next(new ErrorHandler("Activation token expired or invalid", 400));
+  }
+  
   const { name, email, password, avatar } = newUser;
 
-  if (await User.findOne({ email })) return next(new ErrorHandler("User already exists", 400));
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return sendToken(existingUser, 201, res);
+  }
 
   const user = await User.create({ name, email, avatar, password });
   sendToken(user, 201, res);
