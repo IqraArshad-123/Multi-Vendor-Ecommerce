@@ -346,31 +346,84 @@ const createActivationToken = (user) => {
 };
 
 // ========== Activate User Route ==========
-router.post("/activation", async (req, res) => {
+// router.post("/activation", async (req, res) => {
+//   try {
+//     const { activation_token } = req.body;
+
+//     let newUser;
+//     try {
+//       newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
+//     } catch (err) {
+//       return res.status(400).json({ success: false, message: "Activation token expired or invalid" });
+//     }
+
+//     const { name, email, password, avatar } = newUser;
+
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return sendToken(existingUser, 201, res);
+//     }
+
+//     const user = await User.create({ name, email, avatar, password });
+//     sendToken(user, 201, res);
+//   } catch (err) {
+//     return res.status(500).json({ success: false, message: err.message });
+//   }
+// });
+
+// controller/user.js
+// router.post("/activation", catchAsyncErrors(async (req, res, next) => {
+//   try {
+//     const { activation_token } = req.body;
+//     const newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
+
+//     if (!newUser) return next(new ErrorHandler("Invalid token", 400));
+
+//     const { name, email, password, avatar } = newUser;
+//     let user = await User.findOne({ email });
+    
+//     if (user) {
+//         return sendToken(user, 201, res); // Agar user pehle hi hai to login kara dein
+//     }
+
+//     user = await User.create({ name, email, avatar, password });
+//     sendToken(user, 201, res);
+//   } catch (err) {
+//     return next(new ErrorHandler("Activation token expired or invalid", 400));
+//   }
+// }));
+
+router.post("/activation", async (req, res, next) => {
   try {
     const { activation_token } = req.body;
+    
+    // JWT verify karein
+    const newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
 
-    let newUser;
-    try {
-      newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
-    } catch (err) {
-      return res.status(400).json({ success: false, message: "Activation token expired or invalid" });
+    if (!newUser) {
+      return res.status(400).json({ success: false, message: "Invalid token" });
     }
 
     const { name, email, password, avatar } = newUser;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return sendToken(existingUser, 201, res);
+    // Check if user exists
+    let user = await User.findOne({ email });
+    if (user) {
+      return sendToken(user, 201, res);
     }
 
-    const user = await User.create({ name, email, avatar, password });
+    // Create user
+    user = await User.create({ name, email, avatar, password });
     sendToken(user, 201, res);
+    
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    // Yahan next() ki bajaye direct response bhejein
+    return res.status(400).json({ 
+      success: false, 
+      message: "Activation token expired or invalid" 
+    });
   }
 });
-
 // Login, Logout, and other routes remain same
 router.post("/login-user", catchAsyncErrors(async(req, res, next)=>{
   const {email,password} = req.body;
