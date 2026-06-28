@@ -15,6 +15,9 @@ export const loadUser = () => async (dispatch) => {
       payload: data.user,
     });
   } catch (error) {
+    if (error.response?.status !== 401) {
+      console.error("loadUser error:", error.message);
+    }
     dispatch({
       type: "LoadUserFail",
       payload: error.response?.data?.message || error.message,
@@ -28,7 +31,7 @@ export const loadSeller = () => async (dispatch) => {
     dispatch({ type: "LoadSellerRequest" });
 
     const { data } = await axios.get(`${server}/api/v2/shop/getSeller`, {
-      withCredentials: true, // REQUIRED to send cookie
+      withCredentials: true,
     });
 
     dispatch({
@@ -36,6 +39,9 @@ export const loadSeller = () => async (dispatch) => {
       payload: data.seller,
     });
   } catch (error) {
+    if (error.response?.status !== 401) {
+      console.error("loadSeller error:", error.message);
+    }
     dispatch({
       type: "LoadSellerFail",
       payload: error.response?.data?.message || error.message,

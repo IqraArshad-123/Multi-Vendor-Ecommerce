@@ -19,32 +19,33 @@ const Signup = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  const config = { headers: { "Content-Type": "multipart/form-data" } };
+    e.preventDefault();
 
-  const newForm = new FormData();
-  newForm.append("file", avatar);
-  newForm.append("name", name);
-  newForm.append("email", email);
-  newForm.append("password", password);
+    const newForm = new FormData();
+    if (avatar) newForm.append("file", avatar);
+    newForm.append("name", name);
+    newForm.append("email", email);
+    newForm.append("password", password);
 
-  try {
-    const res = await axios.post(`${server}/api/v2/user/create-user`, newForm, config);
+    try {
+      await axios.post(`${server}/api/v2/user/create-user`, newForm, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-    Swal.fire({
-      icon: "success",
-      title: "Please check your email to activate your account 😊",
-      text: "Account Created 🎉",
-      showConfirmButton: true,
-    });
-  } catch (err) {
-    Swal.fire({
-      icon: "error",
-      title: "Signup Failed ❌",
-      text: err.response?.data?.message || "Something went wrong. Try again!",
-    });
-  }
-};
+      Swal.fire({
+        icon: "success",
+        title: "Please check your email to activate your account 😊",
+        text: "Account Created 🎉",
+        showConfirmButton: true,
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Signup Failed ❌",
+        text: err.response?.data?.message || "Something went wrong. Try again!",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
