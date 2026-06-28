@@ -394,13 +394,43 @@ const createActivationToken = (user) => {
 //   }
 // }));
 
-router.post("/activation", async (req, res, next) => {
+// router.post("/activation", async (req, res, next) => {
+//   try {
+//     const { activation_token } = req.body;
+    
+//     // JWT verify karein
+//     const newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
+
+//     if (!newUser) {
+//       return res.status(400).json({ success: false, message: "Invalid token" });
+//     }
+
+//     const { name, email, password, avatar } = newUser;
+
+//     // Check if user exists
+//     let user = await User.findOne({ email });
+//     if (user) {
+//       return sendToken(user, 201, res);
+//     }
+
+//     // Create user
+//     user = await User.create({ name, email, avatar, password });
+//     sendToken(user, 201, res);
+    
+//   } catch (err) {
+//     // Yahan next() ki bajaye direct response bhejein
+//     return res.status(400).json({ 
+//       success: false, 
+//       message: "Activation token expired or invalid" 
+//     });
+//   }
+// });
+router.post("/activation", async (req, res) => {
   try {
     const { activation_token } = req.body;
-    
-    // JWT verify karein
+
+    // 1. Token ko verify karein
     const newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
-    console.log("Secret being used to verify:", process.env.ACTIVATION_SECRET);
 
     if (!newUser) {
       return res.status(400).json({ success: false, message: "Invalid token" });
@@ -408,25 +438,29 @@ router.post("/activation", async (req, res, next) => {
 
     const { name, email, password, avatar } = newUser;
 
-    // Check if user exists
+    // 2. Check karein kya user pehle se registered hai
     let user = await User.findOne({ email });
     if (user) {
       return sendToken(user, 201, res);
     }
 
-    // Create user
-    user = await User.create({ name, email, avatar, password });
+    // 3. User create karein
+    user = await User.create({
+      name,
+      email,
+      avatar,
+      password,
+    });
+
     sendToken(user, 201, res);
-    
   } catch (err) {
-    // Yahan next() ki bajaye direct response bhejein
-    return res.status(400).json({ 
-      success: false, 
-      message: "Activation token expired or invalid" 
+    console.log("Activation Error:", err.message); // Logs mein check karein kya error hai
+    return res.status(400).json({
+      success: false,
+      message: "Activation token expired or invalid",
     });
   }
 });
-
 
 // Login, Logout, and other routes remain same
 router.post("/login-user", catchAsyncErrors(async(req, res, next)=>{
