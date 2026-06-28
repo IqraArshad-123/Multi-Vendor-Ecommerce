@@ -343,6 +343,7 @@ router.post("/create-user", upload.single("file"), async (req, res, next) => {
 
 const createActivationToken = (user) => {
   return jwt.sign(user, process.env.ACTIVATION_SECRET, { expiresIn: "7d" });
+  console.log("Token generated with secret:", process.env.ACTIVATION_SECRET);
 };
 
 // ========== Activate User Route ==========
@@ -399,6 +400,7 @@ router.post("/activation", async (req, res, next) => {
     
     // JWT verify karein
     const newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
+    console.log("Secret being used to verify:", process.env.ACTIVATION_SECRET);
 
     if (!newUser) {
       return res.status(400).json({ success: false, message: "Invalid token" });
