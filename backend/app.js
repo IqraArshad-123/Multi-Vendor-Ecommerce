@@ -13,6 +13,8 @@ app.use(cookieParser());
 app.use(cors({
   origin: ["https://multi-vendor-ecommerce-sooty-one.vercel.app", "http://localhost:3000"],
   credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE"]
 }));
 
 app.use("/", express.static("uploads"));
