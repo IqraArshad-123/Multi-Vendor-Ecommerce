@@ -346,7 +346,7 @@ const createActivationToken = (user) => {
 };
 
 // ========== Activate User Route ==========
-router.post("/activation", async (req, res, next) => {
+router.post("/activation", async (req, res) => {
   try {
     const { activation_token } = req.body;
 
@@ -354,7 +354,7 @@ router.post("/activation", async (req, res, next) => {
     try {
       newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
     } catch (err) {
-      return next(new ErrorHandler("Activation token expired or invalid", 400));
+      return res.status(400).json({ success: false, message: "Activation token expired or invalid" });
     }
 
     const { name, email, password, avatar } = newUser;
@@ -367,7 +367,7 @@ router.post("/activation", async (req, res, next) => {
     const user = await User.create({ name, email, avatar, password });
     sendToken(user, 201, res);
   } catch (err) {
-    return next(new ErrorHandler(err.message, 500));
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
 
