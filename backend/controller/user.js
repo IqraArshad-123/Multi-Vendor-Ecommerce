@@ -394,36 +394,53 @@ const createActivationToken = (user) => {
 //   }
 // }));
 
-router.post("/activation", async (req, res, next) => {
+// router.post("/activation", async (req, res, next) => {
+//   try {
+//     const { activation_token } = req.body;
+    
+//     // JWT verify karein
+//     const newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
+//     console.log("Secret being used to verify:", process.env.ACTIVATION_SECRET);
+
+//     if (!newUser) {
+//       return res.status(400).json({ success: false, message: "Invalid token" });
+//     }
+
+//     const { name, email, password, avatar } = newUser;
+
+//     // Check if user exists
+//     let user = await User.findOne({ email });
+//     if (user) {
+//       return sendToken(user, 201, res);
+//     }
+
+//     // Create user
+//     user = await User.create({ name, email, avatar, password });
+//     sendToken(user, 201, res);
+    
+//   } catch (err) {
+//     // Yahan next() ki bajaye direct response bhejein
+//     return res.status(400).json({ 
+//       success: false, 
+//       message: "Activation token expired or invalid" 
+//     });
+//   }
+// });
+
+router.post("/activation", async (req, res) => {
   try {
     const { activation_token } = req.body;
+    console.log("Received Token:", activation_token); // Token dekhein
     
-    // JWT verify karein
+    // Decoding without verifying first to see if it's even valid format
+    const decoded = jwt.decode(activation_token);
+    console.log("Decoded Payload:", decoded); 
+
     const newUser = jwt.verify(activation_token, process.env.ACTIVATION_SECRET);
-    console.log("Secret being used to verify:", process.env.ACTIVATION_SECRET);
-
-    if (!newUser) {
-      return res.status(400).json({ success: false, message: "Invalid token" });
-    }
-
-    const { name, email, password, avatar } = newUser;
-
-    // Check if user exists
-    let user = await User.findOne({ email });
-    if (user) {
-      return sendToken(user, 201, res);
-    }
-
-    // Create user
-    user = await User.create({ name, email, avatar, password });
-    sendToken(user, 201, res);
-    
+    // ... baki code
   } catch (err) {
-    // Yahan next() ki bajaye direct response bhejein
-    return res.status(400).json({ 
-      success: false, 
-      message: "Activation token expired or invalid" 
-    });
+    console.log("JWT Error Details:", err.message); // Yahan error ki asal wajah milegi
+    return res.status(400).json({ success: false, message: err.message });
   }
 });
 // Login, Logout, and other routes remain same
