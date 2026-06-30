@@ -2,6 +2,8 @@ const ErrorHandler = require("../utils/ErrorHandler");
 
 module.exports = (err, req, res, next) => {
   // Fix: use `err`, not `error`
+  console.log("REAL ERROR =====",err);
+
   err.statusCode = err.statusCode || 500;
   err.message = err.message || "Internal Server Error";
 
