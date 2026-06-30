@@ -137,7 +137,11 @@ const ProductDetails = ({ data }) => {
               {/* LEFT: Product Images */}
               <div className="w-full 800px:w-[50%]">
                 <img
-                  src={`${backend_url}${data && data.images[select]}`}
+                  src={
+                    data.images[select]?.startsWith("http")
+                      ? data.images[select]
+                      : `${backend_url}${data.images[select]}`
+                  }
                   alt=""
                   className="w-[80%]"
                 />
@@ -150,7 +154,7 @@ const ProductDetails = ({ data }) => {
                         } cursor-pointer`}
                       >
                         <img
-                          src={`${backend_url}${i}`}
+                          src={i.startsWith("http") ? i : `${backend_url}${i}`}
                           alt=""
                           className="h-[200px] overflow-hidden mr-3 mt-2"
                           onClick={() => setSelect(index)}
@@ -229,7 +233,11 @@ const ProductDetails = ({ data }) => {
                 <div className="flex items-center pt-8">
                   <Link to={`/shop/preview/${data?.shop._id}`}>
                     <img
-                      src={`${backend_url}${data?.shop?.avatar}`}
+                      src={
+                        data?.shop?.avatar?.startsWith("http")
+                          ? data.shop.avatar
+                          : `${backend_url}${data.shop.avatar}`
+                      }
                       alt=""
                       className="w-[50px] h-[50px] rounded-full mr-2"
                     />
@@ -324,7 +332,9 @@ const ProductDetailsInfo = ({ data, products, totalReviewsLength }) => {
                 <img
                   src={
                     item?.user?.avatar
-                      ? `${backend_url}/${item.user.avatar}`
+                      ? item.user.avatar.startsWith("http")
+                        ? item.user.avatar
+                        : `${backend_url}${item.user.avatar}`
                       : "/default-avatar.png"
                   }
                   alt="user avatar"
@@ -355,7 +365,9 @@ const ProductDetailsInfo = ({ data, products, totalReviewsLength }) => {
                 <img
                   src={
                     data?.shop?.avatar
-                      ? `${backend_url}${data.shop.avatar}`
+                      ? data.shop.avatar.startsWith("http")
+                        ? data.shop.avatar
+                        : `${backend_url}${data.shop.avatar}`
                       : "/default-avatar.png"
                   }
                   alt="Shop Avatar"

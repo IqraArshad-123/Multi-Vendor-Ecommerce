@@ -77,14 +77,26 @@ const ProductCard = ({ data }) => {
   };
 
   // ========== FIXED: Handled multiple variations of image URLs from Backend ==========
-  let imgSource = "";
-  if (data?.images && data.images[0]) {
-    imgSource = `${backend_url}${data.images[0]}`;
-  } else if (data?.image_Url && data.image_Url[0]?.url) {
-    imgSource = data.image_Url[0].url;
-  } else if (typeof data?.images === "string") {
-    imgSource = `${backend_url}${data.images}`;
-  }
+ // Product image handling (Local + Cloudinary both)
+let imgSource = "";
+
+if (data?.images?.length > 0) {
+
+  imgSource = data.images[0].startsWith("http")
+    ? data.images[0]
+    : `${backend_url}${data.images[0]}`;
+
+} else if (data?.image_Url?.length > 0 && data.image_Url[0]?.url) {
+
+  imgSource = data.image_Url[0].url;
+
+} else if (typeof data?.images === "string") {
+
+  imgSource = data.images.startsWith("http")
+    ? data.images
+    : `${backend_url}${data.images}`;
+
+}
 
   return (
     <>

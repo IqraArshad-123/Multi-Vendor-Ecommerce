@@ -4,6 +4,7 @@ const app = express();
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const path = require("path");
 
 app.enable('trust proxy'); // Ye Railway ke liye bohot zaroori hai
 app.use(express.json());
@@ -17,7 +18,7 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"]
 }));
 
-app.use("/", express.static("uploads"));
+app.use("/", express.static(path.join(__dirname, "../uploads")));
 app.use(bodyParser.urlencoded({extended:true}));
 
 // config

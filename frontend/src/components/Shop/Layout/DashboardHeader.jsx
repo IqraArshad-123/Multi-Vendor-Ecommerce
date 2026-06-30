@@ -51,9 +51,13 @@ function DashboardHeader() {
               className="cursor-pointer"
             />
           </Link>
-          <Link to={`/shop/${seller._id}`} >
+          <Link to={`/shop/${seller._id}`}>
             <img
-              src={`${backend_url}${seller?.avatar}`}
+              src={
+                seller?.avatar?.startsWith("http")
+                  ? seller.avatar
+                  : `${backend_url}${seller.avatar}`
+              }
               alt=""
               className="w-[40px] h-[40px] md:w-[50px] md:h-[50px] rounded-full object-cover"
             />

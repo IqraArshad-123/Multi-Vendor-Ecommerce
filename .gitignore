@@ -1,9 +1,6 @@
 # Ignore all node_modules in any folder
 **/node_modules/
 
-# Ignore uploads folder (images, etc.)
-uploads/
-
 # Environment files
 .env
 .env.*
