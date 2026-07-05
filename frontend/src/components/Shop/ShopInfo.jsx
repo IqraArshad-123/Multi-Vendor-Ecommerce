@@ -7,6 +7,7 @@ import Loader from "../Layout/Loader";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllProductsShop } from "../../redux/actions/product";
+import { clearSellerToken } from "../../utils/auth";
 
 const ShopInfo = ({ isOwner }) => {
   const { products } = useSelector((state) => state.products);
@@ -34,7 +35,8 @@ const ShopInfo = ({ isOwner }) => {
   }, []);
 
   const logoutHandler = async () => {
-    axios.get(`${server}/api/v2/shop/logout`, { withCredentials: true });
+    await axios.get(`${server}/api/v2/shop/logout`, { withCredentials: true });
+    clearSellerToken();
     window.location.reload();
   };
   return (

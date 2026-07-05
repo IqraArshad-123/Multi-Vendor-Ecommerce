@@ -16,6 +16,7 @@ const sendShopToken = (user, statusCode, res) => {
     .json({
       success: true,
       user,
+      token,
     });
 };
 

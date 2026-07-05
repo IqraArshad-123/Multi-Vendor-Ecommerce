@@ -2,7 +2,10 @@ import axios from "axios";
 import { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { server } from "../../server";
+import { loadUser } from "../../redux/actions/user";
+import { setUserToken } from "../../utils/auth";
 import Swal from "sweetalert2";
 
 const Login = () => {
@@ -10,6 +13,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,20 +25,20 @@ const Login = () => {
         { withCredentials: true }
       );
 
-      // Success SweetAlert
+      setUserToken(res.data.token);
+      dispatch(loadUser());
+
       Swal.fire({
         icon: "success",
         title: "Login Successful 🎉",
         text: "Redirecting to homepage...",
-        timer: 3000, // 3 seconds to read
+        timer: 1500,
         showConfirmButton: false,
       });
 
-      // Navigate after the alert disappears
       setTimeout(() => {
         navigate("/");
-        // window.location.reload(true);
-      }, 3000);
+      }, 1500);
     } catch (err) {
       // Error SweetAlert
       Swal.fire({

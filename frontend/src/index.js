@@ -1,9 +1,14 @@
 import React from "react";
-import ReactDOM from "react-dom/client"; 
+import ReactDOM from "react-dom/client";
+import axios from "axios";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { Provider } from "react-redux";
 import Store from "./redux/store";
+import { initAuthFromStorage } from "./utils/auth";
+
+axios.defaults.withCredentials = true;
+initAuthFromStorage();
 
 // Create root using the new API
 const root = ReactDOM.createRoot(document.getElementById("root"));

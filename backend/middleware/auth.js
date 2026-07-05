@@ -7,7 +7,11 @@ const Shop = require("../model/shop");
 // 1. User Authentication Middleware
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
-  const { token } = req.cookies;
+  const token =
+    req.cookies.token ||
+    (req.headers.authorization?.startsWith("Bearer ")
+      ? req.headers.authorization.split(" ")[1]
+      : null);
 
   if (!token) {
     return next(new ErrorHandler("Please login to continue", 401));
@@ -31,8 +35,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
 exports.isSeller = catchAsyncErrors(async (req,res,next)=>{
 
- const { seller_token } = req.cookies;
-
+ const seller_token = req.cookies.seller_token || req.headers["seller-token"];
 
  if(!seller_token){
    return next(new ErrorHandler("Please login to continue",401));

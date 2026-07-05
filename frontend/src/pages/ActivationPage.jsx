@@ -40,24 +40,33 @@
 // export default ActivationPage;
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import { server } from "../server";
+import { loadUser } from "../redux/actions/user";
+import { setUserToken } from "../utils/auth";
 
 const ActivationPage = () => {
   const { activation_token } = useParams();
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (activation_token) {
       const activationEmail = async () => {
         try {
-          // Yahan { withCredentials: true } lagana lazmi hai
-          const res = await axios.post(`${server}/api/v2/user/activation`, 
-            { activation_token }, 
-            { withCredentials: true } 
+          const res = await axios.post(
+            `${server}/api/v2/user/activation`,
+            { activation_token },
+            { withCredentials: true }
           );
-          console.log(res.data.message);
+
+          if (res.data.token) {
+            setUserToken(res.data.token);
+            dispatch(loadUser());
+          }
+
           setSuccess(true);
         } catch (error) {
           console.log(error.response?.data?.message || error.message);
@@ -66,7 +75,7 @@ const ActivationPage = () => {
       };
       activationEmail();
     }
-  }, [activation_token]);
+  }, [activation_token, dispatch]);
 
   return (
     <div className="w-full h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">

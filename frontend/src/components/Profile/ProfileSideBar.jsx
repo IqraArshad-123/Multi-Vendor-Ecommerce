@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { server } from "../../server";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { clearUserToken } from "../../utils/auth";
 
 const ProfileSideBar = ({ setActive, active }) => {
   const navigate = useNavigate();
@@ -19,16 +20,16 @@ const ProfileSideBar = ({ setActive, active }) => {
   const logoutHandler = () => {
     axios
       .get(`${server}/api/v2/user/logout`, { withCredentials: true })
-      .then((res) => {
+      .then(() => {
+        clearUserToken();
         Swal.fire({
           icon: "success",
           title: "Logged out!",
           timer: 1200,
           showConfirmButton: false,
         }).then(() => {
-           window.location.reload(true);
           navigate("/login");
-         
+          window.location.reload();
         });
       })
       .catch((error) => {

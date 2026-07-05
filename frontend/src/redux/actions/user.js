@@ -1,5 +1,6 @@
 import axios from "axios";
 import { server } from "../../server.js";
+import { clearSellerToken, clearUserToken } from "../../utils/auth.js";
 
 // ========== Load User ==========
 export const loadUser = () => async (dispatch) => {
@@ -15,7 +16,9 @@ export const loadUser = () => async (dispatch) => {
       payload: data.user,
     });
   } catch (error) {
-    if (error.response?.status !== 401) {
+    if (error.response?.status === 401) {
+      clearUserToken();
+    } else if (error.response?.status !== 401) {
       console.error("loadUser error:", error.message);
     }
     dispatch({
@@ -39,7 +42,9 @@ export const loadSeller = () => async (dispatch) => {
       payload: data.seller,
     });
   } catch (error) {
-    if (error.response?.status !== 401) {
+    if (error.response?.status === 401) {
+      clearSellerToken();
+    } else if (error.response?.status !== 401) {
       console.error("loadSeller error:", error.message);
     }
     dispatch({
