@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "../../styles/styles";
 import CountDown from "./CountDown";
-import { backend_url } from "../../server";
+import { backend_url , imageUrl} from "../../server";
 
 const EventCard = ({ active, data }) => {
 
@@ -19,7 +19,7 @@ const EventCard = ({ active, data }) => {
         <img
           src={
             data?.images?.length > 0
-              ? `${backend_url}${data.images[0]}`
+              ? imageUrl(data.images[0])
               : null
           }
           alt=""
