@@ -8,6 +8,7 @@ const initialState = {
 
 export const cartReducer = createReducer(initialState, (builder) => {
   builder
+    .addCase("clearCart", (state) => { state.cart = []; })
 
     .addCase("addToCart", (state, action) => {
       const item = action.payload;
