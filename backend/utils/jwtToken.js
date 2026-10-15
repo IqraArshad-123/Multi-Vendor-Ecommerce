@@ -14,7 +14,7 @@ const sendToken = (user, statusCode, res) => {
     .cookie("token", token, options)
     .json({
       success: true,
-      user,
+      user: (() => { const safe = user.toObject(); delete safe.password; return safe; })(),
       token,
     });
 };

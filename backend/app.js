@@ -9,7 +9,8 @@ const cors = require("cors");
 const path = require("path");
 
 app.enable('trust proxy'); // Ye Railway ke liye bohot zaroori hai
-app.use(express.json());
+app.post('/api/v2/payment/webhook',express.raw({type:'application/json'}),require('./controller/paymentWebhook'));
+app.use(express.json({ limit: '4mb' }));
 app.use(cookieParser());
 
 // ========== FIXED: Allowed both 3000 and 3001 ports to prevent CORS Block ==========
@@ -60,6 +61,7 @@ app.use("/api/v2/payment", payment);
 app.use("/api/v2/order", order);
 app.use("/api/v2/conversation", conversation);
 app.use("/api/v2/messages", messages);
+app.use("/api/v2", (req, res) => res.status(404).json({ success: false, message: "API route not found" }));
 
 // it's for error handling
 app.use(ErrorHandler);

@@ -2,7 +2,7 @@ const ErrorHandler = require("../utils/ErrorHandler");
 
 module.exports = (err, req, res, next) => {
   // Fix: use `err`, not `error`
-  console.log("REAL ERROR =====",err);
+  if(process.env.NODE_ENV !== "production" && !err.statusCode) console.error(err.name || "Request error");
 
   err.statusCode = err.statusCode || 500;
   err.message = err.message || "Internal Server Error";
@@ -31,6 +31,8 @@ module.exports = (err, req, res, next) => {
     err = new ErrorHandler(message, 400);
   }
 
+  if(err.name === 'ValidationError') err = new ErrorHandler(Object.values(err.errors).map(item=>item.message).join('; '),400);
+  if(err.name === 'MulterError') err = new ErrorHandler('Upload too large. Please use smaller images.',400);
   // Final response
   res.status(err.statusCode).json({
     success: false,

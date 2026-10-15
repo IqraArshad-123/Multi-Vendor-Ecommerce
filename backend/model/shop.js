@@ -43,7 +43,7 @@
 //   },
 //   createdAt: {
 //     type: Date,
-//     default: Date.now(),
+//     default: Date.now,
 //   },
 //   resetPasswordToken: String,
 //   resetPasswordTime: Date,
@@ -103,6 +103,7 @@ const shopSchema = new mongoose.Schema({
     required: true,
   },
   description: String,
+  availableBalance: { type: Number, default: 0 },
   role: {
     type: String,
     default: "Seller",
@@ -117,16 +118,16 @@ const shopSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
   resetPasswordToken: String,
   resetPasswordTime: Date,
 });
 
 // 🔐 Hash password
-shopSchema.pre("save", async function (next) {
+shopSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
 
   this.password = await bcrypt.hash(this.password, 10);

@@ -34,11 +34,14 @@ const eventSchema = new mongoose.Schema({
   },
   discountPrice: {
     type: Number,
-    required: [true, "Please enter your event product price!"],
+    required: [true, "Please enter your price!"],
+    min: 0.01,
   },
   stock: {
     type: Number,
-    required: [true, "Please enter your event product stock!"],
+    required: [true, "Please enter your stock!"],
+    min: 0,
+    validate: Number.isInteger,
   },
   images: [
     {
@@ -59,7 +62,7 @@ const eventSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
 });
 

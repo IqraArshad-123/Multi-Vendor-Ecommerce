@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 const router = express.Router();
 const fs = require("fs");
-const jwt = require("jsonwebtoken");
+const activation = require('../utils/activation');
 const upload = require("../multer");
 
 const sendMail = require("../utils/sendMail");
@@ -21,6 +21,7 @@ const cloudinary = require("../cloudinary");
 router.post("/create-shop", upload.single("file"), async (req, res, next) => {
   try {
     const { email } = req.body;
+    if (!req.body.name?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || '') || typeof req.body.password !== 'string' || req.body.password.length < 4 || !req.body.address?.trim() || !req.body.phoneNumber || !req.body.zipCode) return next(new ErrorHandler('Please complete all shop details with a valid email and password',400));
     const sellerEmail = await Shop.findOne({ email });
 
     if (sellerEmail) {
@@ -81,11 +82,7 @@ router.post("/create-shop", upload.single("file"), async (req, res, next) => {
 });
 
 // ========== Create Activation Token ==========
-const createActivationToken = (seller) => {
-  return jwt.sign(seller, process.env.ACTIVATION_SECRET, {
-    expiresIn: "15m",
-  });
-};
+const createActivationToken = seller => activation.create(seller, 'shop');
 
 // ========== Activate User Route ==========
 router.post(
@@ -94,10 +91,7 @@ router.post(
     try {
       const { activation_token } = req.body;
 
-      const newSeller = jwt.verify(
-        activation_token,
-        process.env.ACTIVATION_SECRET
-      );
+      const newSeller = activation.read(activation_token, "shop");
 
       if (!newSeller) {
         return next(new ErrorHandler("Invalid token", 400));
@@ -188,6 +182,8 @@ router.get(
       res.cookie("seller_token", null, {
         expires: new Date(Date.now()),
         httpOnly: true,
+        sameSite: process.env.NODE_ENV?.toLowerCase() === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV?.toLowerCase() === 'production',
       });
 
       res.status(201).json({
@@ -205,7 +201,7 @@ router.get(
   "/get-shop-info/:id",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const shop = await Shop.findById(req.params.id);
+      const shop = await Shop.findById(req.params.id).select("name avatar description address createdAt");
       res.status(201).json({
         success: true,
         shop,
@@ -241,16 +237,6 @@ router.put(
         return next(new ErrorHandler("Please upload an image file", 400));
       }
 
-      // 1. Agar shop ka pehle sy avatar hai to usay Cloudinary sy delete krien
-      if (existsUser.avatar && existsUser.avatar.includes("cloudinary")) {
-        try {
-          const imageId = existsUser.avatar.split("/").pop().split(".")[0];
-          await cloudinary.uploader.destroy(`shops/${imageId}`);
-        } catch (delError) {
-          console.log("Old shop avatar delete error (Ignored safely):", delError.message);
-        }
-      }
-
       // 2. Nayi image ko Cloudinary pr upload krien
       let newAvatarUrl = "";
       try {
@@ -273,6 +259,16 @@ router.put(
       await Shop.findByIdAndUpdate(sellerId, {
         avatar: newAvatarUrl
       });
+
+      // 1. Agar shop ka pehle sy avatar hai to usay Cloudinary sy delete krien
+      if (existsUser.avatar && existsUser.avatar.includes("cloudinary")) {
+        try {
+          const imageId = existsUser.avatar.split("/").pop().split(".")[0];
+          await cloudinary.uploader.destroy(`shops/${imageId}`);
+        } catch (delError) {
+          console.log("Old shop avatar delete error (Ignored safely):", delError.message);
+        }
+      }
 
       const updatedSeller = await Shop.findById(sellerId);
 

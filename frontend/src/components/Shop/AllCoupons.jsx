@@ -46,20 +46,9 @@ const AllCoupons = () => {
       });
   }, [dispatch, seller?._id]);
 
-  const handleDelete = (id) => {
-    axios
-      .delete(`${server}/api/v2/coupon/delete-coupon/${id}`, {
-        withCredentials: true,
-      })
-      .then((res) => {
-        Swal.fire({
-          icon: "success",
-          title: "Success 🎉",
-          text: "Coupon code deleted successfully!",
-          confirmButtonColor: "#3085d6",
-        });
-      });
-    window.location.reload();
+  const handleDelete = async (id) => {
+    try {await axios.delete(server+'/api/v2/coupon/delete-coupon/'+id,{withCredentials:true});setCoupons(previous=>previous.filter(item=>item._id!==id));Swal.fire({icon:'success',title:'Coupon deleted'});}
+    catch(error){Swal.fire({icon:'error',title:'Could not delete coupon',text:error.response?.data?.message || 'Please try again.'});}
   };
 
   const handleSubmit = async (e) => {

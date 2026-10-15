@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useEffect, useState } from "react";
 import { RxCross1 } from "react-icons/rx";
 import styles from "../../../styles/styles";
@@ -7,9 +8,9 @@ import {
   AiOutlineMessage,
   AiOutlineShoppingCart,
 } from "react-icons/ai";
-import { backend_url } from "../../../server";
+import { backend_url, server, imageUrl} from "../../../server";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { addToCart } from "../../../redux/actions/cart";
 import {
@@ -24,18 +25,24 @@ const ProductDetailsCard = ({ setOpen, data }) => {
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
 
-  const handleMessageSubmit = () => {};
+  const navigate=useNavigate();
+  const {user}=useSelector(state=>state.user);
+  const handleMessageSubmit = async () => {
+    if(!user) {navigate('/login');return;}
+    try {await axios.post(server+'/api/v2/conversation/create-new-conversation',{userId:user._id,sellerId:data.shopId});navigate('/inbox');}
+    catch(error){Swal.fire({icon:'error',title:'Could not open chat',text:error.response?.data?.message || 'Please try again.'});}
+  };
 
   const decrementCount = () => {
     if (count > 1) setCount(count - 1);
   };
 
   const incrementCount = () => {
-    setCount(count + 1);
+    setCount(Math.min(count + 1, data.stock));
   };
 
   const imgSource =
-    data?.image_Url?.[0]?.url || (data?.images?.[0] && `${data.images[0]}`);
+    data?.image_Url?.[0]?.url || imageUrl(data?.images?.[0]);
 
   // ========== FIXED: Balanced Bracket Indentation & Logic ==========
   const addToCartHandler = (id) => {
@@ -110,7 +117,7 @@ const ProductDetailsCard = ({ setOpen, data }) => {
                 >
                   <div className="flex mt-3">
                     <img
-                      src={`${backend_url}${data?.shop?.avatar}`}
+                      src={imageUrl(data?.shop?.avatar)}
                       alt=""
                       className="w-[50px] h-[50px] rounded-full mr-2"
                     />

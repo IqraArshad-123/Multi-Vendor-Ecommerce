@@ -8,7 +8,7 @@ import {
   AiOutlineShoppingCart,
 } from "react-icons/ai";
 import ProductDetailsCard from "../ProductDetailsCard/ProductDetailsCard.jsx";
-import { backend_url } from "../../../server.js";
+import { backend_url, imageUrl } from "../../../server.js";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addToWishlist,
@@ -84,7 +84,7 @@ if (data?.images?.length > 0) {
 
   imgSource = data.images[0].startsWith("http")
     ? data.images[0]
-    : `${backend_url}${data.images[0]}`;
+    : imageUrl(data.images[0]);
 
 } else if (data?.image_Url?.length > 0 && data.image_Url[0]?.url) {
 
@@ -94,7 +94,7 @@ if (data?.images?.length > 0) {
 
   imgSource = data.images.startsWith("http")
     ? data.images
-    : `${backend_url}${data.images}`;
+    : imageUrl(data.images);
 
 }
 

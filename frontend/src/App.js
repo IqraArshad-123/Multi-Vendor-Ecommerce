@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import PasswordResetPage from './pages/PasswordResetPage';
+import React, { useEffect, useState, useMemo } from "react";
 import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import {
   LoginPage,
   SignupPage,
@@ -54,6 +55,7 @@ const App = () => {
 
   const [stripeApiKey, setStripeApiKey] = useState("");
 
+  const stripePromise = useMemo(() => stripeApiKey ? loadStripe(stripeApiKey) : null, [stripeApiKey]);
   async function getStripeApiKey() {
     try {
       const { data } = await axios.get(`${server}/api/v2/payment/stripeapikey`);
@@ -75,6 +77,9 @@ const App = () => {
     <BrowserRouter>
       
       <Routes>
+        <Route path="/forgot-password" element={<PasswordResetPage />} />
+        <Route path="/.forget-password" element={<PasswordResetPage />} />
+        <Route path="/reset-password/:token" element={<PasswordResetPage />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/sign-up" element={<SignupPage />} />
@@ -104,15 +109,7 @@ const App = () => {
           path="/payment"
           element={
             <ProtectedRoute>
-              {stripeApiKey ? (
-                <Elements stripe={loadStripe(stripeApiKey)}>
-                  <PaymentPage />
-                </Elements>
-              ) : (
-                <div className="w-full h-screen flex items-center justify-center text-lg font-semibold">
-                  Loading Payment Gateway...
-                </div>
-              )}
+              <Elements key={stripeApiKey || 'no-card'} stripe={stripePromise}><PaymentPage /></Elements>
             </ProtectedRoute>
           }
         />
@@ -259,6 +256,7 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
+      <Route path="*" element={<div className="p-12 text-center"><h1 className="text-2xl mb-4">Page not found</h1><Link to="/" className="underline">Return to the store</Link></div>} />
       </Routes>
     </BrowserRouter>
   );

@@ -8,7 +8,7 @@
 // import { useSelector } from "react-redux";
 
 // const ProductDetailsPage = () => {
-//     const { allProducts } = useSelector((state) => state.products)
+//     const { allProducts, isLoading } = useSelector((state) => state.products)
 
 
 //   const { id } = useParams();
@@ -40,7 +40,7 @@ import SuggestedProduct from "../components/Products/SuggestedProduct.jsx";
 import { useSelector } from "react-redux";
 
 const ProductDetailsPage = () => {
-  const { allProducts } = useSelector((state) => state.products);
+  const { allProducts, isLoading } = useSelector((state) => state.products);
   const { id } = useParams();
   const [data, setData] = useState(null);
 
@@ -60,7 +60,7 @@ const ProductDetailsPage = () => {
           <SuggestedProduct data={data} />
         </>
       ) : (
-        <div className="text-center my-10">Loading Product Details...</div>
+        <div className="text-center my-10">{isLoading ? "Loading Product Details..." : "This product was not found."}</div>
       )}
       <Footer />
     </div>

@@ -5,7 +5,7 @@ import { BsCartPlus } from "react-icons/bs";
 import { AiOutlineHeart } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { removeFromWishlist } from "../../redux/actions/wishlist";
-import { backend_url } from "../../server";
+import { backend_url , imageUrl} from "../../server";
 import { addToCart } from "../../redux/actions/cart";
 
 const Wishlist = ({ setOpenWishlist }) => {
@@ -88,7 +88,7 @@ const CartSingle = ({ data, removeFromWishlistHandler, addToCartHandler }) => {
         />
         {/* Product Image */}
         <img
-          src={`${backend_url}${data?.images[0]}`}
+          src={imageUrl(data?.images[0])}
           alt=""
           className="w-[130px] h-[80px] ml-7 mr-7 object-cover rounded-md"
         />

@@ -3,7 +3,7 @@ import { RxCross1 } from "react-icons/rx";
 import { IoBagHandleOutline } from "react-icons/io5";
 import { HiOutlineMinus, HiPlus } from "react-icons/hi";
 import { Link } from "react-router-dom";
-import { backend_url } from "../../server";
+import { backend_url , imageUrl} from "../../server";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, removeFromCart } from "../../redux/actions/cart";
 import Swal from "sweetalert2";
@@ -136,7 +136,7 @@ const CartSingle = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
         </div>
         {/* Product Image */}
         <img
-          src={`${backend_url}${data?.images[0]}`}
+          src={imageUrl(data?.images[0])}
           alt=""
           className="w-[130px] h-[80px] ml-7 mr-7 object-cover rounded-md"
         />

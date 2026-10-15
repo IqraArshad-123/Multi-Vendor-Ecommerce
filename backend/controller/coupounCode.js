@@ -12,6 +12,8 @@ router.post(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
+      if (String(req.body.shop)!==String(req.seller._id)) return next(new ErrorHandler('You can only manage your own shop coupons',403));
+      if (!req.body.name?.trim() || !Number.isFinite(Number(req.body.value)) || Number(req.body.value)<=0 || Number(req.body.value)>100 || Number(req.body.minAmount || 0)<0 || Number(req.body.maxAmount || 0)<0 || (Number(req.body.maxAmount)>0 && Number(req.body.maxAmount)<Number(req.body.minAmount))) return next(new ErrorHandler('Enter a valid coupon name, percentage and amount range',400));
       const isCoupounCodeExist = await CoupounCode.find({
         name: req.body.name,
       });
@@ -39,6 +41,7 @@ router.get(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
+      if(req.params.id!==String(req.seller._id)) return next(new ErrorHandler('You can only view your own shop coupons',403));
       const couponCodes = await CoupounCode.find({
         shop: req.params.id,
       });
@@ -60,7 +63,9 @@ router.delete(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const couponCode = await CoupounCode.findByIdAndDelete(req.params.id);
+      const existing=await CoupounCode.findById(req.params.id);
+      if(existing && String(existing.shop)!==String(req.seller._id)) return next(new ErrorHandler('You can only delete your own shop coupons',403));
+      const couponCode=await CoupounCode.findByIdAndDelete(req.params.id);
 
       if (!couponCode) {
         return next(new ErrorHandler("Coupon code dosen't exists!", 400));

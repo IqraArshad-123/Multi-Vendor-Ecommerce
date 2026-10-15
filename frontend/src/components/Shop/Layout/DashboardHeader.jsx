@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { FiPackage, FiShoppingBag } from "react-icons/fi";
 import { BiMessageSquareDetail } from "react-icons/bi";
-import { backend_url } from "../../../server";
+import { backend_url , imageUrl} from "../../../server";
 
 function DashboardHeader() {
   const { seller } = useSelector((state) => state.seller);
@@ -16,7 +16,7 @@ function DashboardHeader() {
       <div className="flex-shrink-0">
         <Link to="/dashboard">
           <img
-            src="https://shopo.quomodothemes.website/assets/images/logo.svg"
+            src="/logo.svg"
             alt=""
             className="h-[40px] md:h-[50px] w-auto" // Reduced logo size
           />
@@ -56,7 +56,7 @@ function DashboardHeader() {
               src={
                 seller?.avatar?.startsWith("http")
                   ? seller.avatar
-                  : `${backend_url}${seller.avatar}`
+                  : imageUrl(seller.avatar)
               }
               alt=""
               className="w-[40px] h-[40px] md:w-[50px] md:h-[50px] rounded-full object-cover"

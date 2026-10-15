@@ -13,7 +13,7 @@ import DropDown from "./DropDown.jsx";
 import Navbar from "./Navbar.jsx";
 import { CgProfile } from "react-icons/cg";
 import { useSelector } from "react-redux";
-import { backend_url } from "../../server.js";
+import { backend_url, imageUrl } from "../../server.js";
 import Cart from "../cart/Cart.jsx";
 import Wishlist from "../Wishlist/Wishlist.jsx";
 import { RxCross1 } from "react-icons/rx";
@@ -57,7 +57,7 @@ const Header = ({ activeHeading }) => {
           <div className="">
             <Link to="/">
               <img
-                src="https://shopo.quomodothemes.website/assets/images/logo.svg"
+                src="/logo.svg"
                 alt=""
               />
             </Link>
@@ -83,7 +83,7 @@ const Header = ({ activeHeading }) => {
                       <Link to={`/product/${i._id}`}>
                         <div className="w-full flex items-start-py-3">
                           <img
-                            src={`${backend_url}${i.images[0]}`}
+                            src={imageUrl(i.images[0])}
                             alt=""
                             className="w-8 h-8 rounded object-cover"
                           />
@@ -164,7 +164,7 @@ const Header = ({ activeHeading }) => {
 src={
     user?.avatar?.startsWith("http")
       ? user.avatar
-      : `${backend_url}uploads/${user?.avatar}`
+      : imageUrl(user?.avatar)
   }                    className="w-[30px] h-[30px] rounded-full"
                     alt=""
                   />
@@ -201,7 +201,7 @@ src={
           <div>
             <Link to="/">
               <img
-                src="https://shopo.quomodothemes.website/assets/images/logo.svg"
+                src="/logo.svg"
                 alt=""
                 className="mt-4 cursor-pointer"
               />
@@ -285,7 +285,7 @@ src={
                   <div>
                     <Link to="/profile">
                       <img
-                        src={`${backend_url}${user.avatar}`}
+                        src={imageUrl(user.avatar)}
                         alt=""
                         className="w-[60px] h-[60px] rounded-full border-[3px] border-[#03cb8c]"
                       />

@@ -17,10 +17,12 @@ const cloudinary = require("../cloudinary");
 // ============================================================
 router.post(
   "/create-product",
+  isSeller,
   upload.array("images"), // multer array for multiple images
   catchAsyncErrors(async (req, res, next) => {
     try {
       const shopId = req.body.shopId;
+      if (String(shopId) !== String(req.seller._id)) return next(new ErrorHandler("You can only manage your own shop", 403));
       const shop = await Shop.findById(shopId);
 
       if (!shop) {
@@ -54,9 +56,9 @@ router.post(
       }
 
       // Product ka saara data samait images links k save krien
-      const productData = req.body;
+      const productData = Object.fromEntries(['name','description','category','tags','originalPrice','discountPrice','stock','shopId'].map(key=>[key,req.body[key]]));
       productData.images = imagesLinks; // DB mn online links save hon gy
-      productData.shop = shop;
+      productData.shop = {_id:shop._id,name:shop.name,avatar:shop.avatar,address:shop.address,description:shop.description};
 
       const product = await Product.create(productData);
 
@@ -104,6 +106,7 @@ router.delete(
       if (!productData) {
         return next(new ErrorHandler("Product not found with this id!", 404));
       }
+      if (String(productData.shopId) !== String(req.seller._id)) return next(new ErrorHandler("You can only manage your own products", 403));
 
       // Cloudinary sy product ki saari images loop chala kr delete krien
       if (productData.images && productData.images.length > 0) {
@@ -163,6 +166,9 @@ router.put(
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { rating, comment, productId, orderId } = req.body;
+      if (!Number.isInteger(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) return next(new ErrorHandler("Rating must be between 1 and 5", 400));
+      const purchase = await Order.findById(orderId);
+      if (!purchase || String(purchase.user?._id) !== String(req.user._id) || purchase.status !== "Delivered" || !purchase.cart.some(item => String(item._id) === String(productId))) return next(new ErrorHandler("Only your delivered purchases can be reviewed", 403));
 
       if (!productId || !orderId || typeof rating === "undefined") {
         return res

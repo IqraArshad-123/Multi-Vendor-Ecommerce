@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { backend_url, server } from "../../server";
+import { backend_url, server , imageUrl} from "../../server";
 import styles from "../../styles/styles";
 import axios from "axios";
 import { useParams } from "react-router-dom";
@@ -48,7 +48,7 @@ const ShopInfo = ({ isOwner }) => {
           <div className="w-full py-5">
             <div className="w-full flex items-center justify-center">
               <img
-                src={`${backend_url}${data.avatar}`}
+                src={imageUrl(data.avatar)}
                 alt=""
                 className="w-[150px] h-[150px] object-cover rounded-full"
               />
