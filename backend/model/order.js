@@ -1,6 +1,13 @@
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
+    checkoutKey: String,
+    shopId: String,
+    inventoryReserved: { type: Boolean, default: false },
+    shipping: Number,
+    discount: Number,
+    balanceCredited: { type: Boolean, default: false },
+    refundId: String,
     cart: {
         type: Array,
         required: true,
@@ -36,7 +43,6 @@ const orderSchema = new mongoose.Schema({
     },
     paidAt: {
         type: Date,
-        default: Date.now, 
     },
     deliveredAt: {
         type: Date,
@@ -46,5 +52,6 @@ const orderSchema = new mongoose.Schema({
         default: Date.now, 
     },
 });
+orderSchema.index({ checkoutKey: 1, shopId: 1 }, { unique: true, partialFilterExpression: { checkoutKey: { $type: 'string' } } });
 
 module.exports = mongoose.model("Order", orderSchema);
