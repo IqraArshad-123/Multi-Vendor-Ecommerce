@@ -248,7 +248,7 @@ const ProductDetails = ({ data }) => {
                         {data.shop.name}
                       </h3>
                     </Link>
-                    <h5 className="pb-3 text-[15px]">(4/5) Ratings</h5>
+                    <h5 className="pb-3 text-[15px]">({Number(data.ratings || 0).toFixed(1)}/5) Product rating</h5>
                   </div>
                   <div className="pl-8">
                     <div
@@ -377,7 +377,7 @@ const ProductDetailsInfo = ({ data, products, totalReviewsLength }) => {
                   <h3 className={styles.shop_name}>
                     {data?.shop?.name || "Shop Name"}
                   </h3>
-                  <h5 className="pb-2 text-[15px]">(4/5) Ratings</h5>
+                  <h5 className="pb-2 text-[15px]">({Number(data.ratings || 0).toFixed(1)}/5) Product rating</h5>
                 </div>
               </div>
             </Link>
