@@ -28,38 +28,21 @@ const CheckOut = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  const paymentSubmit = () => {
-   if(address1 === "" || address2 === "" || zipCode === null || country === "" || city === ""){
-Swal.fire({
-  icon: 'error',
-  title: 'Oops...',
-  text: 'Please choose your delivery address!',
-  confirmButtonColor: '#3085d6'
-});   } else{
-    const shippingAddress = {
-      address1,
-      address2,
-      zipCode,
-      country,
-      city,
-    };
-
-    const orderData = {
-      cart,
-      totalPrice: Number(totalPrice),
-      subTotalPrice,
-      shipping,
-      discountPrice,
-      shippingAddress,
-      user,
+  const [submitting, setSubmitting] = useState(false);
+  const paymentSubmit = async () => {
+    if (submitting) return;
+    if (!cart.length || !address1.trim() || !String(zipCode).trim() || !country || !city) {
+      return Swal.fire({icon:'error',title:'Check your details',text:'Add products and a complete delivery address.'});
     }
-
-    // update local storage with the updated orders array
-    localStorage.setItem("latestOrder", JSON.stringify(orderData));
-    navigate("/payment");
-   }
+    setSubmitting(true);
+    try {
+      const selectedCoupon = couponCodeData ? couponCodeData.name : '';
+      const {data} = await axios.post(server+'/api/v2/order/quote',{cart,couponCode:selectedCoupon},{withCredentials:true});
+      const orderData = {...data,cart:data.cart,shippingAddress:{address1,address2,zipCode,country,city},couponCode:selectedCoupon,idempotencyKey:crypto.randomUUID()};
+      localStorage.setItem('latestOrder',JSON.stringify(orderData));navigate('/payment');
+    } catch(error) {Swal.fire({icon:'error',title:'Checkout unavailable',text:error.response?.data?.message || 'Please try again.'});}
+    finally {setSubmitting(false);}
   };
-
 
   const subTotalPrice = cart.reduce(
     (acc, item) => acc + item.qty * item.discountPrice,
@@ -88,43 +71,9 @@ Swal.fire({
   }
 
   try {
-    const { data } = await axios.get(
-      `${server}/api/v2/coupon/get-coupon-value/${couponCode}`
-       
-       
-    );
-     
-     
-    const coupon = data?.couponCode;
-
-    if (!coupon) {
-Swal.fire({
-  icon: 'error',
-  title: 'Invalid Coupon',
-  text: "Coupon code doesn't exist!",
-  confirmButtonColor: '#3085d6'
-});      return;
-    }
-
-const isCouponValid = cart.filter(
-  (item) => String(item.shopId || item.shop) === String(coupon.shop)
-);
-    if (isCouponValid.length === 0) {
-Swal.fire({
-  icon: 'error',
-  title: 'Not Allowed',
-  text: 'Coupon code is not valid for this shop',
-  confirmButtonColor: '#3085d6'
-});      return;
-    }
-
-    const eligiblePrice = isCouponValid.reduce(
-      (acc, item) => acc + item.qty * item.discountPrice,
-      0
-    );
-
-    const discount = (eligiblePrice * coupon.value) / 100;
-
+    const {data} = await axios.post(server+'/api/v2/order/quote',{cart,couponCode},{withCredentials:true});
+    const coupon={name:couponCode};
+    const discount=data.discountPrice;
     setDiscountPrice(discount);
     setCouponCodeData(coupon);
 
@@ -156,7 +105,7 @@ Swal.fire({
             address1={address1}
             address2={address2}
             zipCode={zipCode}
-            setCountry={setCountry}
+            setCountry={(value)=>{setCountry(value);setCity("");}}
             setCity={setCity}
             setAddress1={setAddress1}
             setAddress2={setAddress2}
@@ -183,7 +132,7 @@ Swal.fire({
 
       {/* Payment Button */}
       <div className={`${styles.button} w-[180px] md:w-[260px] mt-8`}  onClick={paymentSubmit}>
-        <h5 className="text-white text-center">Go to Payment</h5>
+        <h5 className="text-white text-center">{submitting ? 'Checking cart...' : 'Go to Payment'}</h5>
       </div>
     </div>
   );
@@ -280,7 +229,7 @@ const ShippingInfo = ({
               onChange={(e) => setCity(e.target.value)}
             >
               <option value="">Choose your city</option>
-              {City.getCitiesOfCountry(country).map((item) => (
+              {(City.getCitiesOfCountry(country) || []).map((item) => (
                 <option key={`${item.name}-${item.stateCode}`} value={item.name}>
                   {item.name}
                 </option>
