@@ -10,8 +10,11 @@ backend/.env
 # Build folders
 dist/
 build/
+/public/
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.vercel
+.env*
