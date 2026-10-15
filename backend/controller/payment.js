@@ -1,59 +1,27 @@
-const express = require("express");
-const router = express.Router();
-const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const Stripe = require("stripe");
-
-const stripeSecret = process.env.STRIPE_SECRET_KEY;
-// Avoid crashing server boot if env is not set
-const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
-
-
-router.post(
-  "/process",
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const { amount } = req.body;
-
-      if (!stripe) {
-        return res.status(500).json({
-          success: false,
-          error: "Stripe is not configured (missing STRIPE_SECRET_KEY)",
-        });
-      }
-
-      // Create PaymentIntent
-      const paymentIntent = await stripe.paymentIntents.create({
-
-        amount, // amount in cents
-        currency: "usd",
-        metadata: {
-          company: "Bit connect",
-        },
-      });
-
-      console.log("Created PaymentIntent id:", paymentIntent.id);
-      console.log("Client secret (backend):", paymentIntent.client_secret);
-
-      // Send client_secret to frontend
-      res.status(200).json({
-        success: true,
-        clientSecret: paymentIntent.client_secret,
-      });
-    } catch (error) {
-      console.error("Stripe error:", error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  }),
-);
-
-router.get(
-  "/stripeapikey",
-  catchAsyncErrors(async (req, res, next) => {
-    res.status(200).json({
-      stripeApikey:
-        process.env.STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_API_KEY,
-    });
-  }),
-);
-
+const router = require('express').Router();
+const catchAsync = require('../middleware/catchAsyncErrors');
+const {isAuthenticated} = require('../middleware/auth');
+const checkout = require('../utils/checkout');
+const ErrorHandler = require('../utils/ErrorHandler');
+const Checkout = require('../model/checkout');
+router.post('/process', isAuthenticated, catchAsync(async(req,res)=>{
+  if (!checkout.stripe) throw new ErrorHandler('Card payments are temporarily unavailable. Please use cash on delivery.',503);
+  const key = checkout.requestKey(req.body);
+  const address = checkout.addressOf(req.body);
+  const quote = await checkout.quote(req.body);
+  const fingerprint = checkout.fingerprint(quote,address,req.user._id);
+  let saved = await Checkout.findOne({userId:String(req.user._id),key});
+  if(saved && saved.fingerprint!==fingerprint) throw new ErrorHandler('Your cart changed. Please restart checkout.',409);
+  if(!saved) {
+    try { saved=await Checkout.create({userId:String(req.user._id),key,fingerprint,quote,address}); }
+    catch(error) { if(error.code!==11000) throw error;saved=await Checkout.findOne({userId:String(req.user._id),key});if(saved.fingerprint!==fingerprint) throw new ErrorHandler('Please restart checkout',409); }
+  }
+  const intent = await checkout.stripe.paymentIntents.create({
+    amount:checkout.cents(quote.totalPrice),currency:'usd',payment_method_types:['card'],
+    metadata:{userId:String(req.user._id),checkoutKey:key,fingerprint},
+  },{idempotencyKey:`checkout:${req.user._id}:${key}:${fingerprint}`});
+  saved.paymentIntentId=intent.id;await saved.save();
+  res.json({success:true,clientSecret:intent.client_secret,totalPrice:quote.totalPrice});
+}));
+router.get('/stripeapikey',(req,res)=>res.json({stripeApikey:process.env.STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_API_KEY || null}));
 module.exports = router;

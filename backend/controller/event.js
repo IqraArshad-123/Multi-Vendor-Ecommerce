@@ -7,25 +7,33 @@ const Shop = require("../model/shop");
 const ErrorHandler = require("../utils/ErrorHandler");
 const Event = require("../model/event");
 const { isSeller } = require("../middleware/auth");
-const fs = require("fs");
+const cloudinary=require('../cloudinary');
 
 // create event
 
 router.post(
   "/create-event",
+  isSeller,
   upload.array("images"),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const shopId = req.body.shopId;
+      if(String(shopId)!==String(req.seller._id)) return next(new ErrorHandler('You can only manage your own shop events',403));
+      if(!req.files?.length) return next(new ErrorHandler('Upload at least one image',400));
+      if(!req.body.start_Date || !req.body.Finish_Date || new Date(req.body.Finish_Date)<=new Date(req.body.start_Date)) return next(new ErrorHandler('Choose a valid event date range',400));
       const shop = await Shop.findById(shopId);
       if (!shop) {
         return next(new ErrorHandler("Shop Id is invalid", 400));
       } else {
         const files = req.files;
-        const imageUrls = files.map((file) => `${file.filename}`);
-        const eventData = req.body;
+        const imageUrls=[];
+        for(const file of files) {
+          const result=await new Promise((resolve,reject)=>cloudinary.uploader.upload_stream({folder:'events'},(err,result)=>err?reject(err):resolve(result)).end(file.buffer));
+          imageUrls.push(result.secure_url);
+        }
+        const eventData = Object.fromEntries(['name','description','category','tags','originalPrice','discountPrice','stock','shopId','start_Date','Finish_Date'].map(key=>[key,req.body[key]]));
         eventData.images = imageUrls;
-        eventData.shop = shop;
+        eventData.shop = {_id:shop._id,name:shop.name,avatar:shop.avatar,address:shop.address,description:shop.description};
 
         const product = await Event.create(eventData);
 
@@ -83,16 +91,11 @@ router.delete(
 
       const eventData = await Event.findById(productId);
 
-      eventData.images.forEach((imageUrl) => {
-        const filename = imageUrl;
-        const filePath = `uploads/${filename}`;
-
-        fs.unlink(filePath, (err) => {
-          if (err) {
-            console.log(err);
-          }
-        });
-      });
+      if(!eventData) return next(new ErrorHandler('Event not found',404));
+      if(String(eventData.shopId)!==String(req.seller._id)) return next(new ErrorHandler('You can only delete your own events',403));
+      for(const url of eventData.images) {
+        if(url.includes('/events/')) await cloudinary.uploader.destroy('events/'+url.split('/').pop().split('.')[0]);
+      }
 
       const event = await Event.findByIdAndDelete(productId);
 
