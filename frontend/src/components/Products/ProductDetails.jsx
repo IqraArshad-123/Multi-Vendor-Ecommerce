@@ -7,7 +7,7 @@ import {
   AiOutlineMessage,
   AiOutlineShoppingCart,
 } from "react-icons/ai";
-import { backend_url, server } from "../../server";
+import { backend_url, server , imageUrl} from "../../server";
 import Ratings from "./Ratings";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -41,7 +41,7 @@ const ProductDetails = ({ data }) => {
   }, [data, wishlist]);
 
   const incrementCount = () => {
-    setCount(count + 1);
+    setCount(Math.min(count + 1, data.stock));
   };
 
   const decrementCount = () => {
@@ -69,7 +69,7 @@ const ProductDetails = ({ data }) => {
         text: "Item already in cart!",
       });
     } else {
-      if (data.stock < 1) {
+      if (data.stock < count) {
         Swal.fire({
           icon: "warning",
           title: "Stock Limited",
@@ -107,7 +107,7 @@ const ProductDetails = ({ data }) => {
           sellerId,
         })
         .then((res) => {
-          navigate(`/conversation/${res.data.conversation._id}`);
+          navigate("/inbox");
         })
         .catch((error) => {
           Swal.fire({
@@ -140,7 +140,7 @@ const ProductDetails = ({ data }) => {
                   src={
                     data.images[select]?.startsWith("http")
                       ? data.images[select]
-                      : `${backend_url}${data.images[select]}`
+                      : imageUrl(data.images[select])
                   }
                   alt=""
                   className="w-[80%]"
@@ -154,7 +154,7 @@ const ProductDetails = ({ data }) => {
                         } cursor-pointer`}
                       >
                         <img
-                          src={i.startsWith("http") ? i : `${backend_url}${i}`}
+                          src={i.startsWith("http") ? i : imageUrl(i)}
                           alt=""
                           className="h-[200px] overflow-hidden mr-3 mt-2"
                           onClick={() => setSelect(index)}
@@ -236,7 +236,7 @@ const ProductDetails = ({ data }) => {
                       src={
                         data?.shop?.avatar?.startsWith("http")
                           ? data.shop.avatar
-                          : `${backend_url}${data.shop.avatar}`
+                          : imageUrl(data.shop.avatar)
                       }
                       alt=""
                       className="w-[50px] h-[50px] rounded-full mr-2"
@@ -334,7 +334,7 @@ const ProductDetailsInfo = ({ data, products, totalReviewsLength }) => {
                     item?.user?.avatar
                       ? item.user.avatar.startsWith("http")
                         ? item.user.avatar
-                        : `${backend_url}${item.user.avatar}`
+                        : imageUrl(item.user.avatar)
                       : "/default-avatar.png"
                   }
                   alt="user avatar"
@@ -367,7 +367,7 @@ const ProductDetailsInfo = ({ data, products, totalReviewsLength }) => {
                     data?.shop?.avatar
                       ? data.shop.avatar.startsWith("http")
                         ? data.shop.avatar
-                        : `${backend_url}${data.shop.avatar}`
+                        : imageUrl(data.shop.avatar)
                       : "/default-avatar.png"
                   }
                   alt="Shop Avatar"
