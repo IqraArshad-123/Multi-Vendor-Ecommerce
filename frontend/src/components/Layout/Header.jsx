@@ -141,7 +141,7 @@ const Header = ({ activeHeading }) => {
           <div className="flex">
             <div
               className="relative cursor-pointer mr-[15px]"
-              onClick={() => setOpenWishlist(true)}
+              aria-label="Open wishlist" role="button" onClick={() => setOpenWishlist(true)}
             >
               <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
               <span className="absolute right-0 top-0 rounded-full bg-[#3bc177] w-4 h-4 text-white font-mono text-[12px] leading-tight text-center">
@@ -177,9 +177,9 @@ src={
             </div>
 
             {/* cart popup */}
-            {openCart && <Cart setOpenCart={setOpenCart} />}
+
             {/* wishlist popup */}
-            {openWishlist && <Wishlist setOpenWishlist={setOpenWishlist} />}
+
           </div>
         </div>
       </div>
@@ -207,7 +207,7 @@ src={
               />
             </Link>
           </div>
-          <div className="relative mr-[20px]">
+          <div role="button" aria-label="Open cart" onClick={() => setOpenCart(true)} className="relative mr-[20px]">
             <AiOutlineShoppingCart size={30} />
             <span className="absolute right-0 top-0 rounded-full bg-[#3bc177] w-4 h-4 text-white font-mono text-[12px] leading-tight text-center">
               {cart && cart.length}
@@ -221,12 +221,12 @@ src={
             <div className="fixed w-[60%] top-0 h-screen left-0 z-20 bg-[#fff] overflow-y-scroll">
               <div className="w-full justify-between flex pr-3">
                 <div>
-                  <div className="relative mr-[15px]">
+                  <button type="button" aria-label="Open wishlist" onClick={() => { setOpen(false); setOpenWishlist(true); }} className="relative mr-[15px]">
                     <AiOutlineHeart size={30} className="mt-5 ml-3" />
                     <span className="absolute right-0 top-0 rounded-full bg-[#3bc177] w-4 h-4 text-white font-mono text-[12px] leading-tight text-center">
-                      0
+                      {wishlist.length}
                     </span>
-                  </div>
+                  </button>
                 </div>
                 <RxCross1
                   size={30}
@@ -312,6 +312,8 @@ src={
           </div>
         )}
       </div>
+      {openCart && <Cart setOpenCart={setOpenCart} />}
+      {openWishlist && <Wishlist setOpenWishlist={setOpenWishlist} />}
     </>
   );
 };
