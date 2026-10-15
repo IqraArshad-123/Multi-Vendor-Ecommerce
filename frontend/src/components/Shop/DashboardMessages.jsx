@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useRef, useState, useEffect } from "react";
-import { backend_url, server } from "../../server";
+import { backend_url, server , imageUrl} from "../../server";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { AiOutlineArrowRight, AiOutlineSend } from "react-icons/ai";
@@ -67,15 +67,17 @@ const DashboardMessages = () => {
       try {
         if (currentChat?._id) {
           const response = await axios.get(
-            `${server}/api/v2/message/get-all-messages/${currentChat._id}`
+            `${server}/api/v2/messages/get-all-messages/${currentChat._id}`
           );
-          setMessages(response.data.messages);
+          setMessages(prev=>JSON.stringify(prev)===JSON.stringify(response.data.messages)?prev:response.data.messages);
         }
       } catch (error) {
         console.log(error);
       }
     };
     getMessage();
+    const timer=setInterval(getMessage,5000);
+    return ()=>clearInterval(timer);
   }, [currentChat]);
 
   const sendMessageHandler = async (e) => {
@@ -97,7 +99,7 @@ const DashboardMessages = () => {
     });
 
     try {
-      const res = await axios.post(`${server}/api/v2/message/create-new-message`, message);
+      const res = await axios.post(`${server}/api/v2/messages/create-new-message`, message);
       setMessages([...messages, res.data.message]);
       updateLastMessage(newMessage);
       setNewMessage("");
@@ -126,6 +128,8 @@ const DashboardMessages = () => {
         imageSendingHandler(reader.result);
       }
     };
+    if (!e.target.files[0]) return;
+    if (e.target.files[0].size > 2000000) {window.alert('Please choose an image smaller than 2 MB');return;}
     reader.readAsDataURL(e.target.files[0]);
   };
 
@@ -137,7 +141,7 @@ const DashboardMessages = () => {
     formData.append("conversationId", currentChat._id);
 
     try {
-      const res = await axios.post(`${server}/api/v2/message/create-new-message`, formData, {
+      const res = await axios.post(`${server}/api/v2/messages/create-new-message`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setMessages((prev) => [...prev, res.data.message]);
@@ -227,7 +231,7 @@ const MessageList = ({ data, index, setOpen, setCurrentChat, me, setUserData, on
       onClick={() => setActive(index) || handleClick(data._id) || setCurrentChat(data) || setUserData(user) || setActiveStatus(online)}
     >
       <div className="relative">
-        <img src={`${backend_url}${user?.avatar}`} alt="" className="w-[50px] h-[50px] rounded-full object-cover" />
+        <img src={imageUrl(user?.avatar)} alt="" className="w-[50px] h-[50px] rounded-full object-cover" />
         {online && <div className="w-[12px] h-[12px] bg-green-400 rounded-full absolute top-[2px] right-[2px]" />}
       </div>
       <div className="pl-3">
@@ -243,7 +247,7 @@ const SellerInbox = ({ scrollRef, setOpen, newMessage, setNewMessage, sendMessag
     <div className="w-full min-h-full flex flex-col justify-between">
       <div className="w-full flex p-3 items-center justify-between bg-slate-200">
         <div className="flex">
-          <img src={`${backend_url}${userData?.avatar}`} alt="" className="w-[60px] h-[60px] rounded-full object-cover" />
+          <img src={imageUrl(userData?.avatar)} alt="" className="w-[60px] h-[60px] rounded-full object-cover" />
           <div className="pl-3">
             <h1 className="text-[18px] font-[600]">{userData?.name}</h1>
             <h1>{activeStatus ? "Active Now" : ""}</h1>
@@ -256,10 +260,10 @@ const SellerInbox = ({ scrollRef, setOpen, newMessage, setNewMessage, sendMessag
         {messages && messages.map((item, index) => (
           <div key={index} className={`flex w-full my-2 ${item.sender === sellerId ? "justify-end" : "justify-start"}`} ref={scrollRef}>
             {item.sender !== sellerId && (
-              <img src={`${backend_url}${userData?.avatar}`} className="w-[40px] h-[40px] rounded-full mr-3 object-cover" alt="" />
+              <img src={imageUrl(userData?.avatar)} className="w-[40px] h-[40px] rounded-full mr-3 object-cover" alt="" />
             )}
             <div>
-              {item.images && <img src={`${backend_url}${item.images}`} className="w-[150px] h-[150px] object-cover rounded-[10px] mb-2" alt="img" />}
+              {item.images && <img src={item.images?.url || item.images} className="w-[150px] h-[150px] object-cover rounded-[10px] mb-2" alt="img" />}
               {item.text && (
                 <div>
                   <div className={`w-max p-2 rounded ${item.sender === sellerId ? "bg-[#000]" : "bg-[#38c776]"} text-[#fff]`}>

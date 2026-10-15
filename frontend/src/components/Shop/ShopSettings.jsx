@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AiOutlineCamera } from "react-icons/ai";
 import axios from "axios";
 import { loadSeller } from "../../redux/actions/user";
-import { backend_url, server } from "../../server";
+import { backend_url, server , imageUrl} from "../../server";
 import Swal from "sweetalert2";
 
 const ShopSettings = () => {
@@ -89,7 +89,7 @@ const ShopSettings = () => {
         <div className="flex justify-center mb-6">
           <div className="relative">
             <img
-              src={`${backend_url}/${seller.avatar}`}
+              src={imageUrl(seller.avatar)}
               alt="Shop Avatar"
               className="w-[150px] h-[150px] rounded-full object-cover"
             />
