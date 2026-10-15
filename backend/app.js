@@ -1,4 +1,6 @@
+require("dotenv").config({ path: "backend/config/.env" });
 const express = require("express");
+const connectDatabase = require("./db/Database");
 const ErrorHandler = require("./middleware/error");
 const app = express();
 const cookieParser = require("cookie-parser");
@@ -12,7 +14,7 @@ app.use(cookieParser());
 
 // ========== FIXED: Allowed both 3000 and 3001 ports to prevent CORS Block ==========
 app.use(cors({
-  origin: ["https://multi-vendor-ecommerce-sooty-one.vercel.app", "http://localhost:3000"],
+  origin: [process.env.FRONTEND_URL || "https://multi-vendor-ecommerce-sooty-one.vercel.app", "http://localhost:3000"].map((url) => url.replace(/\/+$/, "")),
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization", "Seller-Token"],
   methods: ["GET", "POST", "PUT", "DELETE"]
@@ -27,6 +29,16 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
     path: "backend/config/.env",
   });
 }
+
+app.get("/api/health", (req, res) => res.json({ success: true }));
+app.use("/api/v2", async (req, res, next) => {
+  try {
+    await connectDatabase();
+    next();
+  } catch (error) {
+    res.status(503).json({ success: false, message: "Database connection unavailable" });
+  }
+});
 
 //import routes
 const user = require("./controller/user");
