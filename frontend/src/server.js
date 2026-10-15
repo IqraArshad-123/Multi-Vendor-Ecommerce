@@ -1,2 +1,2 @@
-export const server = "https://multi-vendor-ecommerce-production-29ea.up.railway.app";
-export const backend_url = "https://multi-vendor-ecommerce-production-29ea.up.railway.app/";
+export const server = (process.env.REACT_APP_API_URL || "http://localhost:8000").replace(/\/+$/, "");
+export const backend_url = `${server}/`;
