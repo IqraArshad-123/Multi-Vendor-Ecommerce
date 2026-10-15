@@ -15,7 +15,7 @@ const sendShopToken = (user, statusCode, res) => {
     .cookie("seller_token", token, options)
     .json({
       success: true,
-      user,
+      user: (() => { const safe = user.toObject(); delete safe.password; return safe; })(),
       token,
     });
 };
