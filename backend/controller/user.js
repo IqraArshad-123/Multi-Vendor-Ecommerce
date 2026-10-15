@@ -285,4 +285,24 @@ router.get(
     }
   }),
 );
+
+router.post('/forgot-password',catchAsyncErrors(async(req,res)=>{
+  const email=String(req.body.email || '').trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ErrorHandler('Enter a valid email',400);
+  const user=await User.findOne({email});
+  if(user && (!user.resetPasswordTime || new Date(user.resetPasswordTime).getTime()<Date.now()+29*60000)) {
+    const crypto=require('crypto');const token=crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken=crypto.createHash('sha256').update(token).digest('hex');user.resetPasswordTime=new Date(Date.now()+30*60000);await user.save();
+    await sendMail({email:user.email,subject:'Reset your e-shop password',message:'Reset your password using this link within 30 minutes: '+process.env.FRONTEND_URL+'/reset-password/'+token});
+  }
+  res.json({success:true,message:'If this email has an account, a password reset link has been sent.'});
+}));
+router.post('/reset-password/:token',catchAsyncErrors(async(req,res)=>{
+  const {password,confirmPassword}=req.body;
+  if(typeof password!=='string'||password.length<6||password!==confirmPassword) throw new ErrorHandler('Use matching passwords of at least 6 characters',400);
+  const hash=require('crypto').createHash('sha256').update(req.params.token).digest('hex');
+  const user=await User.findOne({resetPasswordToken:hash,resetPasswordTime:{$gt:new Date()}});
+  if(!user) throw new ErrorHandler('Reset link is invalid or expired',400);
+  user.password=password;user.resetPasswordToken=undefined;user.resetPasswordTime=undefined;await user.save();res.json({success:true,message:'Password updated. Please log in.'});
+}));
 module.exports = router;
