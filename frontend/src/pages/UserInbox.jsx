@@ -77,14 +77,16 @@ const UserInbox = () => {
       if (!currentChat?._id) return;
       try {
         const res = await axios.get(
-          `${server}/api/v2/message/get-all-messages/${currentChat._id}`
+          `${server}/api/v2/messages/get-all-messages/${currentChat._id}`
         );
-        setMessages(res.data.messages);
+        setMessages(prev=>JSON.stringify(prev)===JSON.stringify(res.data.messages)?prev:res.data.messages);
       } catch (err) {
         console.error(err);
       }
     };
     getMessages();
+    const timer=setInterval(getMessages,5000);
+    return ()=>clearInterval(timer);
   }, [currentChat]);
 
   // Send text message
@@ -107,7 +109,7 @@ const UserInbox = () => {
     });
 
     try {
-      const res = await axios.post(`${server}/api/v2/message/create-new-message`, message);
+      const res = await axios.post(`${server}/api/v2/messages/create-new-message`, message);
       setMessages([...messages, res.data.message]);
       updateLastMessage(newMessage);
     } catch (err) {
@@ -141,6 +143,8 @@ const UserInbox = () => {
       }
     };
 
+    if (!e.target.files[0]) return;
+    if (e.target.files[0].size > 2000000) {window.alert('Please choose an image smaller than 2 MB');return;}
     reader.readAsDataURL(e.target.files[0]);
   };
 
@@ -157,7 +161,7 @@ const UserInbox = () => {
     });
 
     try {
-      const res = await axios.post(`${server}/api/v2/message/create-new-message`, {
+      const res = await axios.post(`${server}/api/v2/messages/create-new-message`, {
         images: imageSrc,
         sender: user._id, // 🔥 FIXED: seller to user
         text: newMessage,
@@ -239,7 +243,7 @@ const MessageList = ({
 
     const getUser = async () => {
       try {
-        const res = await axios.get(`${server}/api/v2/seller/get-shop-info/${otherId}`);
+        const res = await axios.get(`${server}/api/v2/shop/get-shop-info/${otherId}`);
         setUser(res.data.shop);
       } catch (err) {
         console.error(err);

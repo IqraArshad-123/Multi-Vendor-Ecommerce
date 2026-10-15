@@ -1,9 +1,12 @@
 import React from "react";
 import Header from "../components/Layout/Header"; // Check kar lein aapka path sahi ho
 import Footer from "../components/Layout/Footer"; // Check kar lein aapka path sahi ho
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 
 const OrderSuccessPage = () => {
+  let receipt;
+  try {receipt=JSON.parse(localStorage.getItem('lastSuccessfulOrder'));} catch {}
+  if(!receipt?.ids?.length) return <Navigate to="/profile" replace />;
   return (
     <div className="w-full min-h-screen bg-[#f6f6f5] flex flex-col justify-between">
       <div>
@@ -38,6 +41,7 @@ const OrderSuccessPage = () => {
               you shortly! 🛍️✨{" "}
             </p>
 
+            <p className="mb-4 text-sm break-all">Order: {receipt.ids.join(', ')} · Total: $ {Number(receipt.total).toFixed(2)}</p>
             <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
               <Link
                 to="/"
