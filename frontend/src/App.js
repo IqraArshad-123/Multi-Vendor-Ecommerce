@@ -1,3 +1,4 @@
+import PasswordResetPage from './pages/PasswordResetPage';
 import React, { useEffect, useState, useMemo } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
@@ -76,6 +77,9 @@ const App = () => {
     <BrowserRouter>
       
       <Routes>
+        <Route path="/forgot-password" element={<PasswordResetPage />} />
+        <Route path="/.forget-password" element={<PasswordResetPage />} />
+        <Route path="/reset-password/:token" element={<PasswordResetPage />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/sign-up" element={<SignupPage />} />
